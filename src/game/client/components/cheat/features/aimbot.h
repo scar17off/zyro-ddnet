@@ -7,6 +7,7 @@ class CAimbot : public CComponent
 {
 public:
     virtual int Sizeof() const override { return sizeof(*this); }
+    virtual void OnRender() override;
 
     int SearchTarget();
     bool InFoV(vec2 Position);

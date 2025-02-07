@@ -616,6 +616,11 @@ protected:
 	void RenderSettingsSound(CUIRect MainView);
 	void RenderSettings(CUIRect MainView);
 	void RenderSettingsCustom(CUIRect MainView);
+	
+	// Zyro menu functions
+	int RenderTablist(CUIRect TabBar);
+	void RenderTabPage1(CUIRect MainView);
+	void RenderSettingsZyro(CUIRect MainView);
 
 	class CMapListItem
 	{
@@ -717,6 +722,7 @@ public:
 		SETTINGS_SOUND,
 		SETTINGS_DDNET,
 		SETTINGS_ASSETS,
+		SETTINGS_ZYRO,
 
 		SETTINGS_LENGTH,
 

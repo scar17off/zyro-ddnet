@@ -1,0 +1,98 @@
+#include <game/localization.h>
+
+#include <game/client/ui.h>
+
+#include "menus.h"
+
+static int s_CurTab = 0;
+enum
+{
+    ZYRO_TAB_PAGE_1 = 0,
+    NUMBER_OF_ZYRO_TABS
+};
+
+int CMenus::RenderTablist(CUIRect TabBar)
+{
+    // Tab button containers  
+    static CButtonContainer s_aPageTabs[NUMBER_OF_ZYRO_TABS] = {};
+    static int s_CurZyroTab = 0;
+
+    // Calculate tab width
+    float TabWidth = TabBar.w / NUMBER_OF_ZYRO_TABS;
+    CUIRect Tab;
+
+    // Render tab buttons
+    for(int i = 0; i < NUMBER_OF_ZYRO_TABS; i++)
+    {
+        TabBar.VSplitLeft(TabWidth, &Tab, &TabBar);
+        
+        // Calculate corners for rounded edges
+        int Corners = 0;
+        if(i == 0) Corners |= IGraphics::CORNER_L;
+        if(i == NUMBER_OF_ZYRO_TABS-1) Corners |= IGraphics::CORNER_R;
+
+        // Get tab text
+        const char *pTabText = "";
+        switch(i) {
+            case ZYRO_TAB_PAGE_1: pTabText = "Page 1"; break;
+        }
+
+        if(DoButton_MenuTab(&s_aPageTabs[i], Localize(pTabText), s_CurZyroTab == i, &Tab, Corners))
+            s_CurZyroTab = i;
+    }
+
+    return s_CurZyroTab;
+}
+
+void CMenus::RenderTabPage1(CUIRect MainView)
+{
+    CUIRect Button, Label, Row;
+    const float ButtonHeight = 20.0f;
+    const float Spacing = 2.0f;
+    const float FontSize = 14.0f;
+    float RowWidth = 60.0f;
+
+    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
+    
+    // Section 1: Aimbot settings
+    // First item (Aim checkbox)
+    Row.VSplitLeft(RowWidth, &Button, &Row);
+    if(DoButton_CheckBox(&g_Config.m_Cheat_Aimbot, Localize("aim"), g_Config.m_Cheat_Aimbot, &Button))
+        g_Config.m_Cheat_Aimbot ^= 1;
+
+    // Second item (Silent checkbox) 
+    Row.VSplitLeft(RowWidth, &Button, &Row);
+    if(DoButton_CheckBox(&g_Config.m_Cheat_Aimbot_Mode, Localize("silent"), g_Config.m_Cheat_Aimbot_Mode, &Button))
+        g_Config.m_Cheat_Aimbot_Mode ^= 1;
+
+    // Third item (FOV slider)
+    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
+    Ui()->DoScrollbarOption(&g_Config.m_Cheat_Aimbot_FoV, &g_Config.m_Cheat_Aimbot_FoV, &Button, Localize("fov"), 1, 315, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+}
+
+void CMenus::RenderSettingsZyro(CUIRect MainView)
+{
+    // Constants for layout
+    const float LineSize = 20.0f;
+    const float SectionMargin = 5.0f;
+
+    // Create tab bar
+    CUIRect TabBar;
+    MainView.HSplitTop(LineSize, &TabBar, &MainView);
+    
+    // Update current tab from tab list
+    s_CurTab = RenderTablist(TabBar);
+
+    MainView.HSplitTop(SectionMargin, nullptr, &MainView);
+
+    // Add margins
+    MainView.Margin(SectionMargin, &MainView);
+
+    // Render current tab content
+    switch(s_CurTab)
+    {
+        case ZYRO_TAB_PAGE_1:
+            RenderTabPage1(MainView);
+            break;
+    }
+}
