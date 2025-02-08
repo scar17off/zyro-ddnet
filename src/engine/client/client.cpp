@@ -2936,7 +2936,7 @@ void CClient::Update()
 	else
 		GameClient()->OnUpdate();
 
-	Discord()->Update();
+	Discord()->Update(g_Config.m_ZrDiscordRPC, g_Config.m_ZrDiscord);
 	Steam()->Update();
 	if(Steam()->GetConnectAddress())
 	{

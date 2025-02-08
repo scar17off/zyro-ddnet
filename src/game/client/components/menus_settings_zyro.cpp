@@ -1,6 +1,7 @@
 #include <game/localization.h>
 
 #include <game/client/ui.h>
+#include <game/client/ui_scrollregion.h>
 
 #include "menus.h"
 
@@ -68,6 +69,23 @@ void CMenus::RenderTabPage1(CUIRect MainView)
     // Third item (FOV slider)
     Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
     Ui()->DoScrollbarOption(&g_Config.m_Cheat_Aimbot_FoV, &g_Config.m_Cheat_Aimbot_FoV, &Button, Localize("fov"), 1, 315, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+
+    // Discord presence
+    MainView.HSplitTop(Spacing, nullptr, &MainView);
+    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
+    
+    // RPC checkbox
+    Row.VSplitLeft(RowWidth, &Button, &Row);
+    if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
+        g_Config.m_ZrDiscordRPC ^= 1;
+
+    // Discord app dropdown
+    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
+    const char *apDiscordApps[] = {"DDNet", "Tater", "CFF", "KRX", "Zyro"};
+    static CUi::SDropDownState s_DiscordDropDownState;
+    static CScrollRegion s_DiscordDropDownScrollRegion;
+    s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
+    g_Config.m_ZrDiscord = Ui()->DoDropDown(&Button, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
 }
 
 void CMenus::RenderSettingsZyro(CUIRect MainView)
