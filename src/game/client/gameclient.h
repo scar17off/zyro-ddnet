@@ -41,6 +41,8 @@
 
 #include "components/cheat/cheat.h"
 #include "components/cheat/features/aimbot.h"
+#include "components/cheat/hitscan/hook_hitscan.h"
+#include "components/cheat/prediction/hook_prediction.h"
 
 #include "components/hud.h"
 #include "components/infomessages.h"
@@ -147,6 +149,8 @@ public:
 
 	CCheat m_Cheat;
 	CAimbot m_Aimbot;
+	CHookPrediction m_HookPrediction;
+	CHookHitscan m_HookHitscan;
 
 	CHud m_Hud;
 	CDebugHud m_DebugHud;

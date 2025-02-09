@@ -6,7 +6,6 @@
 class CCheat : public CComponent
 {
 public:
-
     virtual int Sizeof() const override { return sizeof(*this); }
 
     void SetMousePosition(vec2 Position);

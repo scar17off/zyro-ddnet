@@ -305,17 +305,69 @@ int CControls::SnapInput(int *pData)
 	}
 
 	// Cheat components
-	if(g_Config.m_Cheat_Aimbot)
+	if(g_Config.m_ZrAimbot)
 	{
-		int TargetClientId = m_pClient->m_Aimbot.SearchTarget();
-		if(TargetClientId != -1)
-		{
-			int LocalClientId = m_pClient->m_Snap.m_LocalClientId;
-			vec2 LocalPos = m_pClient->m_aClients[LocalClientId].m_RenderPos;
-			vec2 PlayerPos = m_pClient->m_aClients[TargetClientId].m_RenderPos;
-			vec2 TargetPosition = PlayerPos - LocalPos;
+		bool HookPressed = (m_aInputData[g_Config.m_ClDummy].m_Hook != 0) && (m_aLastData[g_Config.m_ClDummy].m_Hook == 0);
+		bool FirePressed = (m_aInputData[g_Config.m_ClDummy].m_Fire & 1) && !(m_aLastData[g_Config.m_ClDummy].m_Fire & 1);
+		bool IsHooking = (m_aInputData[g_Config.m_ClDummy].m_Hook != 0);
+		bool IsFiring = (m_aInputData[g_Config.m_ClDummy].m_Fire & 1);
 
-			m_pClient->m_Cheat.SetMousePosition(TargetPosition);
+		// Get current weapon for automatic weapon check
+		int CurrentWeapon = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon : -1;
+		bool IsAutoWeapon = (CurrentWeapon == WEAPON_GRENADE || CurrentWeapon == WEAPON_LASER || CurrentWeapon == WEAPON_SHOTGUN);
+
+		// Trigger aimbot on:
+		// - Hook press
+		// - Initial fire press for non-auto weapons
+		// - Continuous fire for auto weapons
+		// - Fire press while hooking
+		if(HookPressed || 
+		   (FirePressed && !IsHooking && !IsAutoWeapon) || 
+		   (IsFiring && !IsHooking && IsAutoWeapon) ||
+		   (FirePressed && IsHooking && m_aLastData[g_Config.m_ClDummy].m_Hook))
+		{
+			int TargetClientId = m_pClient->m_Aimbot.SearchTarget();
+			if(TargetClientId != -1)
+			{
+				int LocalClientId = m_pClient->m_Snap.m_LocalClientId;
+				vec2 LocalPos = m_pClient->m_aClients[LocalClientId].m_RenderPos;
+				vec2 PlayerPos = m_pClient->m_aClients[TargetClientId].m_RenderPos;
+				vec2 AimPosition(0, 0);
+
+				if(HookPressed)
+				{
+					// Try edge scan first for hook
+					AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+					
+					// If edge scan fails, try prediction as fallback
+					if(length(AimPosition) == 0.0f)
+					{
+						vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
+						vec2 targetVel = m_pClient->m_aClients[TargetClientId].m_Predicted.m_Vel;
+						vec2 predictedPos = PlayerPos;
+						
+						if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
+						{
+							// Verify the predicted position with edge scan
+							vec2 predictedDir = predictedPos - LocalPos;
+							if(m_pClient->m_HookHitscan.EdgeScan(TargetClientId).x != 0.0f)
+							{
+								AimPosition = predictedDir;
+							}
+						}
+					}
+				}
+				else
+				{
+					AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+				}
+
+				// Only set aim position if we found a valid hit
+				if(length(AimPosition) > 0.0f)
+				{
+					m_pClient->m_Cheat.SetMousePosition(AimPosition);
+				}
+			}
 		}
 	}
 

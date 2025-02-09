@@ -49,37 +49,41 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 {
     CUIRect Button, Label, Row;
     const float ButtonHeight = 20.0f;
-    const float Spacing = 2.0f;
     const float FontSize = 14.0f;
     float RowWidth = 60.0f;
 
     MainView.HSplitTop(ButtonHeight, &Row, &MainView);
     
-    // Section 1: Aimbot settings
+    // Row: Aimbot settings
     // First item (Aim checkbox)
     Row.VSplitLeft(RowWidth, &Button, &Row);
-    if(DoButton_CheckBox(&g_Config.m_Cheat_Aimbot, Localize("aim"), g_Config.m_Cheat_Aimbot, &Button))
-        g_Config.m_Cheat_Aimbot ^= 1;
+    if(DoButton_CheckBox(&g_Config.m_ZrAimbot, Localize("aim"), g_Config.m_ZrAimbot, &Button))
+        g_Config.m_ZrAimbot ^= 1;
 
     // Second item (Silent checkbox) 
     Row.VSplitLeft(RowWidth, &Button, &Row);
-    if(DoButton_CheckBox(&g_Config.m_Cheat_Aimbot_Mode, Localize("silent"), g_Config.m_Cheat_Aimbot_Mode, &Button))
-        g_Config.m_Cheat_Aimbot_Mode ^= 1;
+    if(DoButton_CheckBox(&g_Config.m_ZrAimbotMode, Localize("silent"), g_Config.m_ZrAimbotMode, &Button))
+        g_Config.m_ZrAimbotMode ^= 1;
 
     // Third item (FOV slider)
     Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
-    Ui()->DoScrollbarOption(&g_Config.m_Cheat_Aimbot_FoV, &g_Config.m_Cheat_Aimbot_FoV, &Button, Localize("fov"), 1, 315, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
 
-    // Discord presence
-    MainView.HSplitTop(Spacing, nullptr, &MainView);
+    // Single item (Hook accuracy)
+    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
+
+    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+
+    // Row: Discord presence
     MainView.HSplitTop(ButtonHeight, &Row, &MainView);
     
-    // RPC checkbox
+    // First item (RPC checkbox)
     Row.VSplitLeft(RowWidth, &Button, &Row);
     if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
         g_Config.m_ZrDiscordRPC ^= 1;
 
-    // Discord app dropdown
+    // Second item (Discord app dropdown)
     Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
     const char *apDiscordApps[] = {"DDNet", "Tater", "CFF", "KRX", "Zyro"};
     static CUi::SDropDownState s_DiscordDropDownState;

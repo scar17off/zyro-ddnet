@@ -2341,6 +2341,10 @@ if(CLIENT)
     components/cheat/cheat.h
     components/cheat/features/aimbot.cpp
     components/cheat/features/aimbot.h
+    components/cheat/hitscan/hook_hitscan.cpp
+    components/cheat/hitscan/hook_hitscan.h
+    components/cheat/prediction/hook_prediction.cpp
+    components/cheat/prediction/hook_prediction.h
     components/console.cpp
     components/console.h
     components/controls.cpp

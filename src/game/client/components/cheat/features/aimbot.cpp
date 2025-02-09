@@ -2,6 +2,7 @@
 
 #include "game/client/gameclient.h"
 
+// TODO: Remove this function and make it possible to configure each weapon
 float CAimbot::GetWeaponReach(int Weapon)
 {
     switch(Weapon)
@@ -52,7 +53,7 @@ int CAimbot::SearchTarget()
 bool CAimbot::InFoV(vec2 Position)
 {
     // Convert FOV from degrees to radians
-    float FovRadians = (g_Config.m_Cheat_Aimbot_FoV * pi) / 180.0f;
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f;
     
     // Get current aim direction
     vec2 CurrentAim = normalize(vec2(
@@ -61,7 +62,7 @@ bool CAimbot::InFoV(vec2 Position)
     ));
 
     // Check if any part of player hitbox is in FOV
-    float ProximityRadius = CCharacterCore::PhysicalSize();
+    constexpr float ProximityRadius = CCharacterCore::PhysicalSize();
     vec2 Points[] = {
         Position + vec2(-ProximityRadius, -ProximityRadius), // Top left
         Position + vec2(ProximityRadius, -ProximityRadius),  // Top right
@@ -86,7 +87,7 @@ void CAimbot::OnRender()
     if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
         return;
     
-    if(!g_Config.m_Cheat_Aimbot || !m_pClient->m_Snap.m_pLocalCharacter)
+    if(!g_Config.m_ZrAimbot || !m_pClient->m_Snap.m_pLocalCharacter)
         return;
     
     vec2 InitPos = m_pClient->m_LocalCharacterPos;
@@ -94,7 +95,7 @@ void CAimbot::OnRender()
     
     vec2 Direction = normalize(m_pClient->m_Controls.m_aMousePos[g_Config.m_ClDummy]);
     float BaseAngle = angle(Direction);
-    float FovRadians = (g_Config.m_Cheat_Aimbot_FoV * pi) / 180.0f;
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f;
 
     Graphics()->TextureClear();
     Graphics()->LinesBegin();

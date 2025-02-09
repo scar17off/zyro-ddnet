@@ -753,8 +753,9 @@ MACRO_CONFIG_INT(ClVideoRecorderFPS, cl_video_recorder_fps, 60, 1, 1000, CFGFLAG
  * Add config variables for mods below this comment to avoid merge conflicts.
  */
 
-MACRO_CONFIG_INT(Cheat_Aimbot, cheat_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot enabled")
-MACRO_CONFIG_INT(Cheat_Aimbot_Mode, cheat_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=Plain, 1=Silent)")
-MACRO_CONFIG_INT(Cheat_Aimbot_FoV, cheat_aimbot_fov, 30, 1, 315, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot field of view")
+MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot enabled")
+MACRO_CONFIG_INT(ZrAimbotHookAccuracy, zr_aimbot_hook_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot hook accuracy")
+MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=Plain, 1=Silent)")
+MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot field of view")
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
 MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 4, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro)")
