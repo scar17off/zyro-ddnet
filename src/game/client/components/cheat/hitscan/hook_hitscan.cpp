@@ -34,21 +34,32 @@ vec2 CHookHitscan::EdgeScan(int ClientId)
     if(HitScanHook(myPos, targetPos, directHook))
         return directHook;
 
+    // Get current aim direction
+    vec2 CurrentAim = normalize(vec2(
+        m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_TargetX,
+        m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_TargetY
+    ));
+    
+    // Convert FOV from degrees to radians
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f;
+    float CurrentAngle = angle(CurrentAim);
+    float StartAngle = CurrentAngle - FovRadians / 2;
+    float EndAngle = CurrentAngle + FovRadians / 2;
+
     // Setup multithreaded scan
     const int NUM_THREADS = 4;
-    const float FULL_CIRCLE = 2.0f * pi;
     const int STEPS_PER_THREAD = 45; // Adjust based on accuracy needs
 
     std::vector<vec2> ValidPoints;
     std::vector<std::shared_ptr<CScanJob>> Jobs;
 
-    // Split the angle range into segments
-    float ThreadAngleStep = FULL_CIRCLE / NUM_THREADS;
+    // Split the FOV range into segments
+    float ThreadAngleStep = (EndAngle - StartAngle) / NUM_THREADS;
 
     // Create and queue jobs
     for(int i = 0; i < NUM_THREADS; i++)
     {
-        float JobStartAngle = i * ThreadAngleStep;
+        float JobStartAngle = StartAngle + i * ThreadAngleStep;
         float JobEndAngle = JobStartAngle + ThreadAngleStep;
 
         auto pJob = std::make_shared<CScanJob>(
