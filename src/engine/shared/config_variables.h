@@ -757,5 +757,14 @@ MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "A
 MACRO_CONFIG_INT(ZrAimbotHookAccuracy, zr_aimbot_hook_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot hook accuracy")
 MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=Plain, 1=Silent)")
 MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot field of view")
+
+// Laser
+MACRO_CONFIG_INT(ZrAimbotLaserPredict, zr_aimbot_laser_predict, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser predict")
+MACRO_CONFIG_INT(ZrAimbotLaserAccuracy, zr_aimbot_laser_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser accuracy")
+MACRO_CONFIG_INT(ZrAimbotLaserBounceOnly, zr_aimbot_laser_bounce_only, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce only")
+MACRO_CONFIG_INT(ZrAimbotLaserUseBounce, zr_aimbot_laser_use_bounce, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser use bounce")
+MACRO_CONFIG_INT(ZrAimbotLaserBounceCount, zr_aimbot_laser_bounce_count, 1, 1, 10, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce count")
+MACRO_CONFIG_INT(ZrAimbotLaserBouncePath, zr_aimbot_laser_bounce_path, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce path (0=closest, 1=furthest, 2=random)")
+
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
 MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 4, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro)")

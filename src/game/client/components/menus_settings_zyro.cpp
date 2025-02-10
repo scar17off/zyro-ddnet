@@ -47,49 +47,71 @@ int CMenus::RenderTablist(CUIRect TabBar)
 
 void CMenus::RenderTabPage1(CUIRect MainView)
 {
-    CUIRect Button, Label, Row;
-    const float ButtonHeight = 20.0f;
-    const float FontSize = 14.0f;
-    float RowWidth = 60.0f;
+    CUIRect Button, Right, Row, Label;
+    const float LineSize = 20.0f;
+    const float Spacing = 2.0f;
+    const float CheckboxWidth = 80.0f;
+    const float SliderWidth = 150.0f;
 
-    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
-    
-    // Row: Aimbot settings
-    // First item (Aim checkbox)
-    Row.VSplitLeft(RowWidth, &Button, &Row);
+    // Limit the width and height of the menu
+    MainView.VSplitLeft(300.0f, &MainView, nullptr);
+    MainView.HSplitTop(140.0f, &MainView, nullptr);
+
+    // Aimbot settings (Aim, Silent, FOV on same row)
+    MainView.HSplitTop(LineSize, &Row, &MainView);
+    Row.VSplitLeft(CheckboxWidth, &Button, &Right);
     if(DoButton_CheckBox(&g_Config.m_ZrAimbot, Localize("aim"), g_Config.m_ZrAimbot, &Button))
         g_Config.m_ZrAimbot ^= 1;
-
-    // Second item (Silent checkbox) 
-    Row.VSplitLeft(RowWidth, &Button, &Row);
+    
+    Right.VSplitLeft(CheckboxWidth, &Button, &Label);
     if(DoButton_CheckBox(&g_Config.m_ZrAimbotMode, Localize("silent"), g_Config.m_ZrAimbotMode, &Button))
         g_Config.m_ZrAimbotMode ^= 1;
 
-    // Third item (FOV slider)
-    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Label, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
 
-    // Single item (Hook accuracy)
-    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
+    // Hook and Laser accuracy on same row
+    MainView.HSplitTop(Spacing, nullptr, &MainView);
+    MainView.HSplitTop(LineSize, &Row, &MainView);
+    Row.VSplitLeft(SliderWidth, &Button, &Right);
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+    Right.VSplitLeft(5.0f, nullptr, &Right);
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Right, Localize("laser acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
 
-    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+    // Laser bounce settings
+    MainView.HSplitTop(Spacing, nullptr, &MainView);
+    MainView.HSplitTop(LineSize, &Row, &MainView);
+    Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+    if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
+        g_Config.m_ZrAimbotLaserUseBounce ^= 1;
 
-    // Row: Discord presence
-    MainView.HSplitTop(ButtonHeight, &Row, &MainView);
-    
-    // First item (RPC checkbox)
-    Row.VSplitLeft(RowWidth, &Button, &Row);
+    Right.VSplitLeft(CheckboxWidth, &Button, &Label);
+    if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
+        g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
+
+    // Bounce count and path selection on same row
+    MainView.HSplitTop(Spacing, nullptr, &MainView);
+    MainView.HSplitTop(LineSize, &Row, &MainView);
+    Row.VSplitLeft(SliderWidth, &Button, &Right);
+    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button, Localize("count"), 1, 10, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+    Right.VSplitLeft(5.0f, nullptr, &Right);
+    const char *apBouncePaths[] = {"closest", "furthest", "random"};
+    static CUi::SDropDownState s_BouncePathDropDownState;
+    static CScrollRegion s_BouncePathDropDownScrollRegion;
+    s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
+    g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Right, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
+
+    // Discord settings (RPC checkbox and dropdown on same row)
+    MainView.HSplitTop(Spacing * 2, nullptr, &MainView);
+    MainView.HSplitTop(LineSize, &Row, &MainView);
+    Row.VSplitLeft(CheckboxWidth, &Button, &Right);
     if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
         g_Config.m_ZrDiscordRPC ^= 1;
 
-    // Second item (Discord app dropdown)
-    Row.VSplitLeft(RowWidth + 100.0f, &Button, &Row);
-    const char *apDiscordApps[] = {"DDNet", "Tater", "CFF", "KRX", "Zyro"};
+    const char *apDiscordApps[] = {"ddnet", "tater", "cff", "krx", "zyro"};
     static CUi::SDropDownState s_DiscordDropDownState;
     static CScrollRegion s_DiscordDropDownScrollRegion;
     s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
-    g_Config.m_ZrDiscord = Ui()->DoDropDown(&Button, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
+    g_Config.m_ZrDiscord = Ui()->DoDropDown(&Right, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
 }
 
 void CMenus::RenderSettingsZyro(CUIRect MainView)

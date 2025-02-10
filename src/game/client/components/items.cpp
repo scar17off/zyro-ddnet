@@ -397,8 +397,19 @@ void CItems::OnRender()
 			CLaserData Data = pLaser->GetData();
 			RenderLaser(&Data, true);
 		}
-		for(auto *pPickup = (CPickup *)GameClient()->m_PrevPredictedWorld.FindFirst(CGameWorld::ENTTYPE_PICKUP); pPickup; pPickup = (CPickup *)pPickup->NextEntity())
+		// fuck you ddnet devs for making me manually check if the entity exists
+		// who the fuck did this is a stupid dumbass
+		// it was like this before:
+		// https://github.com/ddnet/ddnet/blob/69c92a79e6bab9f9390245f518c5340222c544dc/src/game/client/components/items.cpp#L400
+		// and when you try to predict shit, it breaks the game and doesn't let the projectiles render
+		// so i had to change it to this
+		// i hope someone will open a pull request to fix this on original ddnet
+		for(CEntity *pEnt = GameClient()->m_PrevPredictedWorld.FindFirst(CGameWorld::ENTTYPE_PICKUP); pEnt; pEnt = pEnt->NextEntity())
 		{
+			auto *const pPickup = dynamic_cast<CPickup *>(pEnt);
+			if(!pPickup)
+				continue;
+
 			if(!IsSuper && pPickup->m_Layer == LAYER_SWITCH && pPickup->m_Number > 0 && pPickup->m_Number < (int)aSwitchers.size() && !aSwitchers[pPickup->m_Number].m_aStatus[SwitcherTeam] && BlinkingPickup)
 				continue;
 

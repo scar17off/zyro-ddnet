@@ -357,8 +357,27 @@ int CControls::SnapInput(int *pData)
 						}
 					}
 				}
+				else if(CurrentWeapon == WEAPON_LASER)
+				{
+					// First try direct shot with edge scan
+					if(!g_Config.m_ZrAimbotLaserBounceOnly)
+					{
+						AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+					}
+
+					// If direct shot failed and bounce is enabled, try bounce
+					if(g_Config.m_ZrAimbotLaserUseBounce && (length(AimPosition) == 0.0f || g_Config.m_ZrAimbotLaserBounceOnly))
+					{
+						// Get current aim angle and FOV
+						float CurrentAngle = angle(vec2(m_aInputData[g_Config.m_ClDummy].m_TargetX, m_aInputData[g_Config.m_ClDummy].m_TargetY));
+
+						// Use laser prediction with bounce
+						AimPosition = m_pClient->m_LaserPrediction.PredictLaser(TargetClientId, CurrentAngle, g_Config.m_ZrAimbotFoV);
+					}
+				}
 				else
 				{
+					// Use regular edge scan for other weapons
 					AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
 				}
 
