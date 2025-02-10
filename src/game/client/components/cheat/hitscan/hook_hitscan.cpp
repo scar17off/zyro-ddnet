@@ -1,52 +1,93 @@
 #include "hook_hitscan.h"
 #include "game/client/gameclient.h"
+#include <engine/engine.h>
 
-vec2 CHookHitscan::EdgeScan(int ClientId)
+void CHookHitscan::ScanAngles(float StartAngle, float EndAngle, int Steps, int ClientId, std::vector<vec2> &ValidPoints)
 {
     vec2 myPos = m_pClient->m_PredictedChar.m_Pos;
     vec2 targetPos = m_pClient->m_aClients[ClientId].m_Predicted.m_Pos;
+    float AngleStep = (EndAngle - StartAngle) / Steps;
 
-    // Try direct hook first
-    if(HitScanHook(myPos, targetPos, targetPos - myPos))
-        return targetPos - myPos;
+    std::vector<vec2> LocalValidPoints;
 
-    // Constants for scanning
-    const float PLAYER_SIZE = 28.0f;
-    const int MAX_HIT_POINTS = 8; // This should stay static
-    
-    // Calculate scan step based on accuracy setting (1-200 range)
-    float accuracy = clamp(g_Config.m_ZrAimbotHookAccuracy, 1, 200) / 200.0f;
-    const float SCAN_STEP = pi / 18.0f * (1.0f - accuracy) + pi / 360.0f * accuracy;
-    const float FULL_CIRCLE = 2.0f * pi;
-    
-    // Scan around the entire player hitbox
-    std::vector<vec2> hitPoints;
-    hitPoints.reserve(MAX_HIT_POINTS);
-    
-    for(float angle = 0.0f; angle < FULL_CIRCLE; angle += SCAN_STEP)
+    for(int i = 0; i <= Steps; i++)
     {
-        // Calculate point on player's hitbox
-        vec2 hitboxPoint = vec2(
-            targetPos.x + cosf(angle) * PLAYER_SIZE,
-            targetPos.y + sinf(angle) * PLAYER_SIZE
-        );
-
-        vec2 hookDir = hitboxPoint - myPos;
+        float CurrentAngle = StartAngle + i * AngleStep;
+        vec2 Direction = direction(CurrentAngle);
+        vec2 HookDir = Direction * m_pClient->m_aTuning->m_HookLength;
         
-        // Skip if angle is too steep
-        float hookAngle = atan2f(hookDir.y, hookDir.x);
-        if(abs(hookAngle) > pi * 0.8f)
-            continue;
-
-        if(HitScanHook(myPos, targetPos, hookDir))
+        if(HitScanHook(myPos, targetPos, HookDir))
         {
-            hitPoints.push_back(hookDir);
-            if(hitPoints.size() >= MAX_HIT_POINTS)
-                break;
+            std::lock_guard<std::mutex> Lock(m_ScanMutex);
+            ValidPoints.push_back(HookDir);
         }
     }
+}
 
-    return !hitPoints.empty() ? hitPoints[hitPoints.size() / 2] : vec2(0, 0);
+vec2 CHookHitscan::EdgeScan(int ClientId)
+{
+    // Try direct hook first
+    vec2 myPos = m_pClient->m_PredictedChar.m_Pos;
+    vec2 targetPos = m_pClient->m_aClients[ClientId].m_Predicted.m_Pos;
+    vec2 directHook = targetPos - myPos;
+    
+    if(HitScanHook(myPos, targetPos, directHook))
+        return directHook;
+
+    // Setup multithreaded scan
+    const int NUM_THREADS = 4;
+    const float FULL_CIRCLE = 2.0f * pi;
+    const int STEPS_PER_THREAD = 45; // Adjust based on accuracy needs
+
+    std::vector<vec2> ValidPoints;
+    std::vector<std::shared_ptr<CScanJob>> Jobs;
+
+    // Split the angle range into segments
+    float ThreadAngleStep = FULL_CIRCLE / NUM_THREADS;
+
+    // Create and queue jobs
+    for(int i = 0; i < NUM_THREADS; i++)
+    {
+        float JobStartAngle = i * ThreadAngleStep;
+        float JobEndAngle = JobStartAngle + ThreadAngleStep;
+
+        auto pJob = std::make_shared<CScanJob>(
+            JobStartAngle, JobEndAngle, 
+            STEPS_PER_THREAD, ClientId, 
+            &ValidPoints, this
+        );
+        
+        Jobs.push_back(pJob);
+        Kernel()->RequestInterface<IEngine>()->AddJob(std::shared_ptr<IJob>(pJob));
+    }
+
+    // Wait for all jobs to complete
+    for(const auto &pJob : Jobs)
+    {
+        while(!pJob->Done())
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    // Find the best hook point (closest to target)
+    if(!ValidPoints.empty())
+    {
+        vec2 BestPoint = ValidPoints[0];
+        float BestDist = distance(targetPos, myPos + BestPoint);
+
+        for(const vec2 &Point : ValidPoints)
+        {
+            float Dist = distance(targetPos, myPos + Point);
+            if(Dist < BestDist)
+            {
+                BestDist = Dist;
+                BestPoint = Point;
+            }
+        }
+
+        return BestPoint;
+    }
+
+    return vec2(0, 0);
 }
 
 bool CHookHitscan::HitScanHook(vec2 initPos, vec2 targetPos, vec2 scanDir)
