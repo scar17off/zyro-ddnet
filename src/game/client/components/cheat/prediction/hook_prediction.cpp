@@ -1,4 +1,5 @@
 #include "hook_prediction.h"
+
 #include "game/client/gameclient.h"
 
 bool CHookPrediction::PredictHook(vec2 &myPos, vec2 myVel, vec2 &targetPos, vec2 targetVel) 

@@ -33,9 +33,6 @@ void CControls::OnReset()
 		AmmoCount = 0;
 
 	m_LastSendTime = 0;
-
-	// Reset aimbot target
-	m_pClient->m_Aimbot.ResetTarget();
 }
 
 void CControls::ResetInput(int Dummy)
@@ -191,7 +188,7 @@ int CControls::SnapInput(int *pData)
 	else
 		m_aInputData[g_Config.m_ClDummy].m_PlayerFlags = PLAYERFLAG_PLAYING;
 
-	if(m_pClient->m_Scoreboard.IsActive())
+	if(m_pClient->m_Scoreboard.Active())
 		m_aInputData[g_Config.m_ClDummy].m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
 
 	if(Client()->ServerCapAnyPlayerFlag() && m_pClient->m_Controls.m_aShowHookColl[g_Config.m_ClDummy])

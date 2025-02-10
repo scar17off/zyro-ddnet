@@ -16,7 +16,7 @@ int str_utf8_tolower(int code)
 	key.upper = code;
 	res = (UPPER_LOWER *)bsearch(&key, tolowermap, NUM_TOLOWER, sizeof(struct UPPER_LOWER), compul);
 
-	if(res == nullptr)
+	if(res == NULL)
 		return code;
 	return res->lower;
 }

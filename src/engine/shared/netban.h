@@ -124,7 +124,7 @@ protected:
 					return pBan;
 			}
 
-			return nullptr;
+			return 0;
 		}
 		CBan<CDataType> *Get(int Index) const;
 
@@ -198,7 +198,7 @@ public:
 template<class T>
 void CNetBan::MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const
 {
-	if(pBan == nullptr || pBuf == nullptr)
+	if(pBan == 0 || pBuf == 0)
 	{
 		if(BuffSize > 0)
 			pBuf[0] = 0;

@@ -205,13 +205,13 @@ const unsigned char *CUnpacker::GetRaw(int Size)
 {
 	const unsigned char *pPtr = m_pCurrent;
 	if(m_Error)
-		return nullptr;
+		return 0;
 
 	// check for nasty sizes
 	if(Size < 0 || m_pCurrent + Size > m_pEnd)
 	{
 		m_Error = true;
-		return nullptr;
+		return 0;
 	}
 
 	// "unpack" the data

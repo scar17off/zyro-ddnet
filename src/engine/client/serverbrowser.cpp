@@ -17,7 +17,6 @@
 #include <engine/shared/json.h>
 #include <engine/shared/masterserver.h>
 #include <engine/shared/network.h>
-#include <engine/shared/packer.h>
 #include <engine/shared/protocol.h>
 #include <engine/shared/serverinfo.h>
 
@@ -111,8 +110,8 @@ void CServerBrowser::RegisterCommands()
 	m_pConsole->Register("remove_favorite_community", "s[community_id]", CFGFLAG_CLIENT, Con_RemoveFavoriteCommunity, this, "Remove a community from the favorites");
 	m_pConsole->Register("add_excluded_community", "s[community_id]", CFGFLAG_CLIENT, Con_AddExcludedCommunity, this, "Add a community to the exclusion filter");
 	m_pConsole->Register("remove_excluded_community", "s[community_id]", CFGFLAG_CLIENT, Con_RemoveExcludedCommunity, this, "Remove a community from the exclusion filter");
-	m_pConsole->Register("add_excluded_country", "s[community_id] s[country_code]", CFGFLAG_CLIENT, Con_AddExcludedCountry, this, "Add a country to the exclusion filter for a specific community (ISO 3166-1 numeric)");
-	m_pConsole->Register("remove_excluded_country", "s[community_id] s[country_code]", CFGFLAG_CLIENT, Con_RemoveExcludedCountry, this, "Remove a country from the exclusion filter for a specific community (ISO 3166-1 numeric)");
+	m_pConsole->Register("add_excluded_country", "s[community_id] s[country_code]", CFGFLAG_CLIENT, Con_AddExcludedCountry, this, "Add a country to the exclusion filter for a specific community");
+	m_pConsole->Register("remove_excluded_country", "s[community_id] s[country_code]", CFGFLAG_CLIENT, Con_RemoveExcludedCountry, this, "Remove a country from the exclusion filter for a specific community");
 	m_pConsole->Register("add_excluded_type", "s[community_id] s[type]", CFGFLAG_CLIENT, Con_AddExcludedType, this, "Add a type to the exclusion filter for a specific community");
 	m_pConsole->Register("remove_excluded_type", "s[community_id] s[type]", CFGFLAG_CLIENT, Con_RemoveExcludedType, this, "Remove a type from the exclusion filter for a specific community");
 	m_pConsole->Register("leak_ip_address_to_all_servers", "", CFGFLAG_CLIENT, Con_LeakIpAddress, this, "Leaks your IP address to all servers by pinging each of them, also acquiring the latency in the process");
@@ -703,7 +702,11 @@ void ServerBrowserFormatAddresses(char *pBuffer, int BufferSize, NETADDR *pAddrs
 			return;
 		}
 		char aIpAddr[512];
-		net_addr_str(&pAddrs[i], aIpAddr, sizeof(aIpAddr), true);
+		if(!net_addr_str(&pAddrs[i], aIpAddr, sizeof(aIpAddr), true))
+		{
+			str_copy(pBuffer, aIpAddr, BufferSize);
+			return;
+		}
 		if(pAddrs[i].type & NETTYPE_TW7)
 		{
 			str_format(
@@ -874,34 +877,6 @@ CServerBrowser::CServerEntry *CServerBrowser::Add(const NETADDR *pAddrs, int Num
 	return pEntry;
 }
 
-CServerBrowser::CServerEntry *CServerBrowser::ReplaceEntry(CServerEntry *pEntry, const NETADDR *pAddrs, int NumAddrs)
-{
-	for(int i = 0; i < pEntry->m_Info.m_NumAddresses; i++)
-	{
-		m_ByAddr.erase(pEntry->m_Info.m_aAddresses[i]);
-	}
-
-	// set the info
-	mem_copy(pEntry->m_Info.m_aAddresses, pAddrs, NumAddrs * sizeof(pAddrs[0]));
-	pEntry->m_Info.m_NumAddresses = NumAddrs;
-
-	pEntry->m_Info.m_Latency = 999;
-	pEntry->m_Info.m_HasRank = CServerInfo::RANK_UNAVAILABLE;
-	ServerBrowserFormatAddresses(pEntry->m_Info.m_aAddress, sizeof(pEntry->m_Info.m_aAddress), pEntry->m_Info.m_aAddresses, pEntry->m_Info.m_NumAddresses);
-	UpdateServerCommunity(&pEntry->m_Info);
-	str_copy(pEntry->m_Info.m_aName, pEntry->m_Info.m_aAddress, sizeof(pEntry->m_Info.m_aName));
-
-	pEntry->m_Info.m_Favorite = m_pFavorites->IsFavorite(pEntry->m_Info.m_aAddresses, pEntry->m_Info.m_NumAddresses);
-	pEntry->m_Info.m_FavoriteAllowPing = m_pFavorites->IsPingAllowed(pEntry->m_Info.m_aAddresses, pEntry->m_Info.m_NumAddresses);
-
-	for(int i = 0; i < NumAddrs; i++)
-	{
-		m_ByAddr[pAddrs[i]] = pEntry->m_Info.m_ServerIndex;
-	}
-
-	return pEntry;
-}
-
 void CServerBrowser::OnServerInfoUpdate(const NETADDR &Addr, int Token, const CServerInfo *pInfo)
 {
 	int BasicToken = Token;
@@ -916,27 +891,6 @@ void CServerBrowser::OnServerInfoUpdate(const NETADDR &Addr, int Token, const CS
 
 	if(m_ServerlistType == IServerBrowser::TYPE_LAN)
 	{
-		if(!pEntry)
-		{
-			NETADDR LookupAddr = Addr;
-			if(Addr.type & NETTYPE_TW7)
-			{
-				// don't add 0.7 server if 0.6 server with the same IP and port already exists
-				LookupAddr.type &= ~NETTYPE_TW7;
-				pEntry = Find(LookupAddr);
-				if(pEntry)
-					return;
-			}
-			else
-			{
-				// replace 0.7 bridge server with 0.6
-				LookupAddr.type |= NETTYPE_TW7;
-				pEntry = Find(LookupAddr);
-				if(pEntry)
-					pEntry = ReplaceEntry(pEntry, &Addr, 1);
-			}
-		}
-
 		NETADDR Broadcast;
 		mem_zero(&Broadcast, sizeof(Broadcast));
 		Broadcast.type = m_pNetClient->NetType() | NETTYPE_LINK_BROADCAST;
@@ -1014,11 +968,13 @@ void CServerBrowser::Refresh(int Type, bool Force)
 		CNetChunk Packet;
 
 		/* do the broadcast version */
+		Packet.m_ClientId = -1;
 		mem_zero(&Packet, sizeof(Packet));
 		Packet.m_Address.type = m_pNetClient->NetType() | NETTYPE_LINK_BROADCAST;
 		Packet.m_Flags = NETSENDFLAG_CONNLESS | NETSENDFLAG_EXTENDED;
 		Packet.m_DataSize = sizeof(aBuffer);
 		Packet.m_pData = aBuffer;
+		mem_zero(&Packet.m_aExtraData, sizeof(Packet.m_aExtraData));
 
 		int Token = GenerateToken(Packet.m_Address);
 		mem_copy(aBuffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
@@ -1029,25 +985,10 @@ void CServerBrowser::Refresh(int Type, bool Force)
 
 		m_BroadcastTime = time_get();
 
-		CPacker Packer;
-		Packer.Reset();
-		Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-		Packer.AddInt(Token);
-
-		CNetChunk Packet7;
-		mem_zero(&Packet7, sizeof(Packet7));
-		Packet7.m_Address.type = m_pNetClient->NetType() | NETTYPE_TW7 | NETTYPE_LINK_BROADCAST;
-		Packet7.m_Flags = NETSENDFLAG_CONNLESS;
-		Packet7.m_DataSize = Packer.Size();
-		Packet7.m_pData = Packer.Data();
-
 		for(int Port = LAN_PORT_BEGIN; Port <= LAN_PORT_END; Port++)
 		{
 			Packet.m_Address.port = Port;
 			m_pNetClient->Send(&Packet);
-
-			Packet7.m_Address.port = Port;
-			m_pNetClient->Send(&Packet7);
 		}
 
 		if(g_Config.m_Debug)
@@ -1098,41 +1039,21 @@ void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry, int 
 		*pBasicToken = GetBasicToken(Token);
 	}
 
-	if(Addr.type & NETTYPE_TW7)
-	{
-		CPacker Packer;
-		Packer.Reset();
-		Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-		Packer.AddInt(Token);
+	unsigned char aBuffer[sizeof(SERVERBROWSE_GETINFO) + 1];
+	mem_copy(aBuffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+	aBuffer[sizeof(SERVERBROWSE_GETINFO)] = GetBasicToken(Token);
 
-		CNetChunk Packet;
-		Packet.m_ClientId = -1;
-		Packet.m_Address = Addr;
-		Packet.m_Flags = NETSENDFLAG_CONNLESS;
-		Packet.m_DataSize = Packer.Size();
-		Packet.m_pData = Packer.Data();
-		mem_zero(&Packet.m_aExtraData, sizeof(Packet.m_aExtraData));
+	CNetChunk Packet;
+	Packet.m_ClientId = -1;
+	Packet.m_Address = Addr;
+	Packet.m_Flags = NETSENDFLAG_CONNLESS | NETSENDFLAG_EXTENDED;
+	Packet.m_DataSize = sizeof(aBuffer);
+	Packet.m_pData = aBuffer;
+	mem_zero(&Packet.m_aExtraData, sizeof(Packet.m_aExtraData));
+	Packet.m_aExtraData[0] = GetExtraToken(Token) >> 8;
+	Packet.m_aExtraData[1] = GetExtraToken(Token) & 0xff;
 
-		m_pNetClient->Send(&Packet);
-	}
-	else
-	{
-		unsigned char aBuffer[sizeof(SERVERBROWSE_GETINFO) + 1];
-		mem_copy(aBuffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-		aBuffer[sizeof(SERVERBROWSE_GETINFO)] = GetBasicToken(Token);
-
-		CNetChunk Packet;
-		Packet.m_ClientId = -1;
-		Packet.m_Address = Addr;
-		Packet.m_Flags = NETSENDFLAG_CONNLESS | NETSENDFLAG_EXTENDED;
-		Packet.m_DataSize = sizeof(aBuffer);
-		Packet.m_pData = aBuffer;
-		mem_zero(&Packet.m_aExtraData, sizeof(Packet.m_aExtraData));
-		Packet.m_aExtraData[0] = GetExtraToken(Token) >> 8;
-		Packet.m_aExtraData[1] = GetExtraToken(Token) & 0xff;
-
-		m_pNetClient->Send(&Packet);
-	}
+	m_pNetClient->Send(&Packet);
 
 	if(pEntry)
 		pEntry->m_RequestTime = time_get();

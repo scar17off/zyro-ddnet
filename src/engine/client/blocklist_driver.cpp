@@ -55,12 +55,12 @@ static SBackEndDriverBlockList gs_aBlockList[] = {
 
 const char *ParseBlocklistDriverVersions(const char *pVendorStr, const char *pVersionStr, int &BlocklistMajor, int &BlocklistMinor, int &BlocklistPatch, bool &RequiresWarning)
 {
-	if(str_find_nocase(pVendorStr, "Intel") == nullptr)
-		return nullptr;
+	if(str_find_nocase(pVendorStr, "Intel") == NULL)
+		return NULL;
 
 	const char *pVersionStrStart = str_find_nocase(pVersionStr, "Build ");
-	if(pVersionStrStart == nullptr)
-		return nullptr;
+	if(pVersionStrStart == NULL)
+		return NULL;
 
 	// ignore "Build ", after that, it should directly start with the driver version
 	pVersionStrStart += (ptrdiff_t)str_length("Build ");
@@ -71,8 +71,8 @@ const char *ParseBlocklistDriverVersions(const char *pVendorStr, const char *pVe
 	for(int &VersionPart : Version.m_aParts)
 	{
 		pVersionStrStart = str_next_token(pVersionStrStart, ".", aVersionStrHelper, sizeof(aVersionStrHelper));
-		if(pVersionStrStart == nullptr)
-			return nullptr;
+		if(pVersionStrStart == NULL)
+			return NULL;
 
 		VersionPart = str_toint(aVersionStrHelper);
 	}
@@ -84,7 +84,7 @@ const char *ParseBlocklistDriverVersions(const char *pVendorStr, const char *pVe
 			bool DriverBlocked = false;
 			if(BlockListItem.m_BlockListType == BACKEND_DRIVER_BLOCKLIST_TYPE_VENDOR)
 			{
-				if(str_find_nocase(pVendorStr, BlockListItem.m_pVendorName) != nullptr)
+				if(str_find_nocase(pVendorStr, BlockListItem.m_pVendorName) != NULL)
 				{
 					DriverBlocked = true;
 				}
@@ -108,5 +108,5 @@ const char *ParseBlocklistDriverVersions(const char *pVendorStr, const char *pVe
 		}
 	}
 
-	return nullptr;
+	return NULL;
 }

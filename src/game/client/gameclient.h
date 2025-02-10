@@ -112,8 +112,6 @@ public:
 
 	bool m_NoWeakHookAndBounce;
 	bool m_NoSkinChangeForFrozen;
-
-	bool m_DDRaceTeam;
 };
 
 class CSnapEntities
@@ -153,7 +151,7 @@ public:
 	CHookPrediction m_HookPrediction;
 	CHookHitscan m_HookHitscan;
 	CLaserPrediction m_LaserPrediction;
-
+	
 	CHud m_Hud;
 	CDebugHud m_DebugHud;
 	CControls m_Controls;
@@ -348,18 +346,12 @@ public:
 		int m_HighestClientId;
 
 		// spectate data
-		class CSpectateInfo
+		struct CSpectateInfo
 		{
-		public:
 			bool m_Active;
 			int m_SpectatorId;
 			bool m_UsePosition;
 			vec2 m_Position;
-
-			bool m_HasCameraInfo;
-			float m_Zoom;
-			int m_Deadzone;
-			int m_FollowFactor;
 		} m_SpecInfo;
 
 		//
@@ -389,35 +381,6 @@ public:
 	int m_aExpectingTuningForZone[NUM_DUMMIES];
 	int m_aExpectingTuningSince[NUM_DUMMIES];
 	CTuningParams m_aTuning[NUM_DUMMIES];
-
-	// spectate cursor data
-	class CCursorInfo
-	{
-		friend class CGameClient;
-		static constexpr int CURSOR_SAMPLES = 8; // how many samples to keep
-		static constexpr int SAMPLE_FRAME_WINDOW = 3; // how many samples should be used for polynomial interpolation
-		static constexpr int SAMPLE_FRAME_OFFSET = 2; // how many samples in the past should be included
-		static constexpr double INTERP_DELAY = 4.25; // how many ticks in the past to show, enables extrapolation with smaller value (<= SAMPLE_FRAME_WINDOW - SAMPLE_FRAME_OFFSET + 3)
-		static constexpr double REST_THRESHOLD = 3.0; // how many ticks of the same samples are considered to be resting
-
-		int m_CursorOwnerId;
-		double m_aTargetSamplesTime[CURSOR_SAMPLES];
-		vec2 m_aTargetSamplesData[CURSOR_SAMPLES];
-		int m_NumSamples;
-
-		bool m_Available;
-		int m_Weapon;
-		vec2 m_Target;
-		vec2 m_WorldTarget;
-		vec2 m_Position;
-
-	public:
-		bool IsAvailable() const { return m_Available; }
-		int Weapon() const { return m_Weapon; }
-		vec2 Target() const { return m_Target; }
-		vec2 WorldTarget() const { return m_WorldTarget; }
-		vec2 Position() const { return m_Position; }
-	} m_CursorInfo;
 
 	// client data
 	struct CClientData
@@ -568,7 +531,6 @@ public:
 	template<typename T>
 	void ApplySkin7InfoFromGameMsg(const T *pMsg, int ClientId, int Conn);
 	void ApplySkin7InfoFromSnapObj(const protocol7::CNetObj_De_ClientInfo *pObj, int ClientId) override;
-	void UpdateBotSkinDecoration(int ClientId);
 	int OnDemoRecSnap7(class CSnapshot *pFrom, class CSnapshot *pTo, int Conn) override;
 	void *TranslateGameMsg(int *pMsgId, CUnpacker *pUnpacker, int Conn);
 	int TranslateSnap(CSnapshot *pSnapDstSix, CSnapshot *pSnapSrcSeven, int Conn, bool Dummy) override;
@@ -852,7 +814,6 @@ private:
 	int m_aShowOthers[NUM_DUMMIES];
 
 	void UpdatePrediction();
-	void UpdateSpectatorCursor();
 	void UpdateRenderedCharacters();
 
 	int m_aLastUpdateTick[MAX_CLIENTS] = {0};
@@ -865,6 +826,10 @@ private:
 	CCharOrder m_CharOrder;
 	int m_aSwitchStateTeam[NUM_DUMMIES];
 
+	enum
+	{
+		NUM_TUNEZONES = 256
+	};
 	void LoadMapSettings();
 	CTuningParams m_aTuningList[NUM_TUNEZONES];
 	CTuningParams *TuningList() { return m_aTuningList; }

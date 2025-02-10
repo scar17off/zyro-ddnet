@@ -60,7 +60,7 @@ void CUpdaterFetchTask::OnProgress()
 
 void CUpdaterFetchTask::OnCompletion(EHttpState State)
 {
-	const char *pFileName = nullptr;
+	const char *pFileName = 0;
 	for(const char *pPath = Dest(); *pPath; pPath++)
 		if(*pPath == '/')
 			pFileName = pPath + 1;

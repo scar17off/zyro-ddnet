@@ -26,7 +26,7 @@ GameInfoFlags = [
 ]
 GameInfoFlags2 = [
 	"ALLOW_X_SKINS", "GAMETYPE_CITY", "GAMETYPE_FDDRACE", "ENTITIES_FDDRACE", "HUD_HEALTH_ARMOR", "HUD_AMMO",
-	"HUD_DDRACE", "NO_WEAK_HOOK", "NO_SKIN_CHANGE_FOR_FROZEN", "DDRACE_TEAM"
+	"HUD_DDRACE", "NO_WEAK_HOOK", "NO_SKIN_CHANGE_FOR_FROZEN"
 ]
 ExPlayerFlags = ["AFK", "PAUSED", "SPEC"]
 LegacyProjectileFlags = [f"CLIENTID_BIT{i}" for i in range(8)] + [
@@ -71,7 +71,7 @@ enum
 
 enum
 {
-	GAMEINFO_CURVERSION=10,
+	GAMEINFO_CURVERSION=9,
 };
 '''
 
@@ -198,8 +198,7 @@ Objects = [
 		NetIntRange("m_PlayerFlags", 0, 256),
 		NetIntRange("m_Health", 0, 10),
 		NetIntRange("m_Armor", 0, 10),
-		# -1 is infinite ammo
-		NetIntRange("m_AmmoCount", -1, 10),
+		NetIntRange("m_AmmoCount", 0, 10),
 		NetIntRange("m_Weapon", -1, 'NUM_WEAPONS-1'),
 		NetIntRange("m_Emote", 0, len(Emotes)),
 		NetIntRange("m_AttackTick", 0, 'max_int'),
@@ -259,7 +258,6 @@ Objects = [
 		# New data fields for improved target accuracy
 		NetIntAny("m_TargetX", 0),
 		NetIntAny("m_TargetY", 0),
-		NetIntRange("m_TuneZoneOverride", -1, 'NUM_TUNEZONES-1', -1),
 	], validate_size=False),
 
 	NetObjectEx("DDNetPlayer", "player@netobj.ddnet.tw", [
@@ -316,13 +314,6 @@ Objects = [
 		NetIntRange("m_Type", 0, 'max_int'),
 		NetIntRange("m_Subtype", 0, 'max_int'),
 		NetIntAny("m_SwitchNumber"),
-	]),
-
-	NetObjectEx("DDNetSpectatorInfo", "spectator-info@netobj.ddnet.org", [
-		NetBool("m_HasCameraInfo"),
-		NetIntRange("m_Zoom", 0, 'max_int'),
-		NetIntRange("m_Deadzone", 0, 'max_int'),
-		NetIntRange("m_FollowFactor", 0, 'max_int'),
 	]),
 
 	## Events
@@ -409,7 +400,7 @@ Messages = [
 	NetMessage("Sv_KillMsg", [
 		NetIntRange("m_Killer", 0, 'MAX_CLIENTS-1'),
 		NetIntRange("m_Victim", 0, 'MAX_CLIENTS-1'),
-		NetIntRange("m_Weapon", 'WEAPON_GAME', 'NUM_WEAPONS-1'),
+		NetIntRange("m_Weapon", -3, 'NUM_WEAPONS-1'),
 		NetIntAny("m_ModeSpecial"),
 	]),
 

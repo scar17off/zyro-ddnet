@@ -40,7 +40,7 @@ else()
   set(TARGET_BITS "64")
 endif()
 
-if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm"
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" 
   OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64"
   OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "ARM64")
   if(TARGET_BITS STREQUAL "32")
@@ -107,10 +107,10 @@ option(UPNP "Enable UPnP support" OFF)
 option(ANTIBOT "Enable support for a dynamic anticheat library (not provided, see src/antibot for interface if you want to implement your own)" OFF)
 option(HEADLESS_CLIENT "Build the client without graphics" OFF)
 option(CLIENT "Compile client" ON)
-option(SERVER "Compile server" ON)
+option(SERVER "Compile server" OFF)
 option(TOOLS "Compile tools" ON)
 option(DOWNLOAD_GTEST "Download and compile GTest" ${AUTO_DEPENDENCIES_DEFAULT})
-option(STEAM "Build the Steam release version" OFF)
+option(STEAM "Build the Steam release version" ON)
 option(DISCORD "Enable Discord rich presence support" ON)
 option(DISCORD_DYNAMIC "Enable discovering Discord rich presence libraries at runtime (Linux only)" OFF)
 option(PREFER_BUNDLED_LIBS "Prefer bundled libraries over system libraries" ${AUTO_DEPENDENCIES_DEFAULT})
@@ -864,7 +864,6 @@ set_src(RUST_BRIDGE_SHARED GLOB_RECURSE src/rust-bridge
 
 set_glob(RUST_MASTERSRV GLOB "rs;toml" src/mastersrv/src
   addr.rs
-  config.rs
   locations.rs
   main.rs
 )
@@ -1509,7 +1508,6 @@ set(EXPECTED_DATA
   mapres/generic_clear.png
   mapres/generic_deathtiles.png
   mapres/generic_lamps.png
-  mapres/generic_shadows_0.7.png
   mapres/generic_unhookable.png
   mapres/generic_unhookable_0.7.png
   mapres/grass_doodads.png
@@ -2345,8 +2343,8 @@ if(CLIENT)
     components/cheat/hitscan/hook_hitscan.h
     components/cheat/prediction/hook_prediction.cpp
     components/cheat/prediction/hook_prediction.h
-    components/cheat/prediction/laser_prediction.h
     components/cheat/prediction/laser_prediction.cpp
+    components/cheat/prediction/laser_prediction.h
     components/console.cpp
     components/console.h
     components/controls.cpp
@@ -2448,7 +2446,6 @@ if(CLIENT)
     render.cpp
     render.h
     render_map.cpp
-    sixup_translate_connless.cpp
     sixup_translate_game.cpp
     sixup_translate_snapshot.cpp
     skin.h
@@ -2687,7 +2684,7 @@ if(SERVER)
     antibot_null.cpp
   )
 
-  set_src(ENGINE_SERVER_WITHOUT_MAIN GLOB_RECURSE src/engine/server
+  set_src(ENGINE_SERVER GLOB_RECURSE src/engine/server
     antibot.cpp
     antibot.h
     authmanager.cpp
@@ -2714,9 +2711,6 @@ if(SERVER)
     upnp.cpp
     upnp.h
   )
-
-  list(REMOVE_ITEM ENGINE_SERVER_WITHOUT_MAIN "${PROJECT_SOURCE_DIR}/src/engine/server/main.cpp")
-
   set_src(GAME_SERVER GLOB_RECURSE src/game/server
     ddracechat.cpp
     ddracecommands.cpp
@@ -2774,7 +2768,7 @@ if(SERVER)
     "src/game/generated/server_data.h"
     "src/game/generated/wordlist.h"
   )
-  set(SERVER_SRC ${ENGINE_SERVER_WITHOUT_MAIN} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
+  set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
   if(TARGET_OS STREQUAL "windows")
     set(SERVER_ICON "other/icons/DDNet-Server.rc")
   else()
@@ -2798,26 +2792,11 @@ if(SERVER)
     ${LIBS}
   )
 
-  add_library(server-without-main OBJECT
-      ${DEPS}
-      ${SERVER_SRC}
-      $<TARGET_OBJECTS:engine-shared>
-      $<TARGET_OBJECTS:game-shared>
-      $<TARGET_OBJECTS:rust-bridge-shared>
-  )
-  set_property(TARGET server-without-main
-      PROPERTY OUTPUT_NAME ${SERVER_EXECUTABLE}
-  )
-  target_link_libraries(server-without-main ${LIBS_SERVER})
-  list(APPEND TARGETS_OWN server-without-main)
-  list(APPEND TARGETS_LINK server-without-main)
-
   # Target
   if(TARGET_OS STREQUAL "android")
     add_library(game-server SHARED
       ${DEPS}
-      $<TARGET_OBJECTS:server-without-main>
-      "${PROJECT_SOURCE_DIR}/src/engine/server/main.cpp"
+      ${SERVER_SRC}
       ${SERVER_ICON}
       $<TARGET_OBJECTS:engine-shared>
       $<TARGET_OBJECTS:game-shared>
@@ -2826,9 +2805,8 @@ if(SERVER)
   else()
     add_executable(game-server
       ${DEPS}
-      "${PROJECT_SOURCE_DIR}/src/engine/server/main.cpp"
+      ${SERVER_SRC}
       ${SERVER_ICON}
-      $<TARGET_OBJECTS:server-without-main>
       $<TARGET_OBJECTS:engine-shared>
       $<TARGET_OBJECTS:game-shared>
       $<TARGET_OBJECTS:rust-bridge-shared>
@@ -2838,6 +2816,7 @@ if(SERVER)
       PROPERTY OUTPUT_NAME ${SERVER_EXECUTABLE}
   )
   target_link_libraries(game-server ${LIBS_SERVER})
+  target_include_directories(game-server PRIVATE ${PNG_INCLUDE_DIRS})
   list(APPEND TARGETS_OWN game-server)
   list(APPEND TARGETS_LINK game-server)
 
@@ -2980,7 +2959,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     datafile.cpp
     editor.cpp
     fs.cpp
-    gameworld.cpp
     git_revision.cpp
     hash.cpp
     huffman.cpp
@@ -3024,20 +3002,30 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     src/engine/client/serverbrowser_ping_cache.cpp
     src/engine/client/serverbrowser_ping_cache.h
     src/engine/client/sqlite.cpp
+    src/engine/server/databases/connection.cpp
+    src/engine/server/databases/connection.h
+    src/engine/server/databases/sqlite.cpp
+    src/engine/server/databases/mysql.cpp
+    src/engine/server/name_ban.cpp
+    src/engine/server/name_ban.h
+    src/engine/server/sql_string_helpers.cpp
+    src/engine/server/sql_string_helpers.h
+    src/game/server/teehistorian.cpp
+    src/game/server/teehistorian.h
+    src/game/server/scoreworker.cpp
+    src/game/server/scoreworker.h
   )
 
   set(TARGET_TESTRUNNER testrunner)
   add_executable(${TARGET_TESTRUNNER} EXCLUDE_FROM_ALL
     ${TESTS}
     ${TESTS_EXTRA}
-    $<TARGET_OBJECTS:server-without-main>
     $<TARGET_OBJECTS:engine-gfx>
     $<TARGET_OBJECTS:engine-shared>
     $<TARGET_OBJECTS:game-shared>
-    $<TARGET_OBJECTS:rust-bridge-shared>
     ${DEPS}
   )
-  target_link_libraries(${TARGET_TESTRUNNER} ${MYSQL_LIBRARIES} ${PNG_LIBRARIES} ${GTEST_LIBRARIES} ${LIBS} rust_engine_shared ${TARGET_ANTIBOT})
+  target_link_libraries(${TARGET_TESTRUNNER} ${MYSQL_LIBRARIES} ${PNG_LIBRARIES} ${GTEST_LIBRARIES} ${LIBS})
   target_include_directories(${TARGET_TESTRUNNER} SYSTEM PRIVATE ${GTEST_INCLUDE_DIRS})
 
   list(APPEND TARGETS_OWN ${TARGET_TESTRUNNER})

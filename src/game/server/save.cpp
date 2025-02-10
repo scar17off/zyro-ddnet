@@ -482,24 +482,6 @@ bool CSaveTee::IsHooking() const
 	return m_HookState == HOOK_GRABBED || m_HookState == HOOK_FLYING;
 }
 
-void CSaveHotReloadTee::Save(CCharacter *pChr, bool AddPenalty)
-{
-	m_SaveTee.Save(pChr, AddPenalty);
-	m_Super = pChr->m_Core.m_Super;
-	m_Invincible = pChr->m_Core.m_Invincible;
-	m_SavedTeleTee = pChr->m_pPlayer->m_LastTeleTee;
-}
-
-bool CSaveHotReloadTee::Load(CCharacter *pChr, int Team, bool IsSwap)
-{
-	bool Result = m_SaveTee.Load(pChr, Team, IsSwap);
-	pChr->SetSuper(m_Super);
-	pChr->m_Core.m_Invincible = m_Invincible;
-	pChr->GetPlayer()->m_LastTeleTee = m_SavedTeleTee;
-
-	return Result;
-}
-
 CSaveTeam::CSaveTeam()
 {
 	m_aString[0] = '\0';
@@ -525,7 +507,7 @@ ESaveResult CSaveTeam::Save(CGameContext *pGameServer, int Team, bool Dry, bool 
 	}
 
 	m_MembersCount = pTeams->Count(Team);
-	if(m_MembersCount <= 0)
+	if(m_MembersCount <= 0 && !Force)
 	{
 		return ESaveResult::TEAM_NOT_FOUND;
 	}
@@ -547,7 +529,7 @@ ESaveResult CSaveTeam::Save(CGameContext *pGameServer, int Team, bool Dry, bool 
 	CCharacter *p = (CCharacter *)pGameServer->m_World.FindFirst(CGameWorld::ENTTYPE_CHARACTER);
 	for(; p; p = (CCharacter *)p->TypeNext())
 	{
-		if(pTeams->m_Core.Team(p->GetPlayer()->GetCid()) != Team)
+		if(pTeams->m_Core.Team(p->GetPlayer()->GetCid()) != Team && !Force)
 			continue;
 		if(m_MembersCount == j && !Force)
 			return ESaveResult::CHAR_NOT_FOUND;
@@ -744,7 +726,7 @@ int CSaveTeam::FromString(const char *pString)
 	if(m_pSavedTees)
 	{
 		delete[] m_pSavedTees;
-		m_pSavedTees = nullptr;
+		m_pSavedTees = 0;
 	}
 
 	if(m_MembersCount > 64)
@@ -797,7 +779,7 @@ int CSaveTeam::FromString(const char *pString)
 	if(m_pSwitchers)
 	{
 		delete[] m_pSwitchers;
-		m_pSwitchers = nullptr;
+		m_pSwitchers = 0;
 	}
 
 	if(m_HighestSwitchNumber)

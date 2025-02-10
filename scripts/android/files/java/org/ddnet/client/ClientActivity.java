@@ -96,12 +96,12 @@ public class ClientActivity extends SDLActivity {
 	}
 
 	// Called from native code, see android_main.cpp
-	public void startServer(String[] arguments) {
+	public void startServer() {
 		synchronized(serverServiceMonitor) {
 			if(serverServiceMessenger != null) {
 				return;
 			}
-			Intent startIntent = ServerService.createStartIntent(this, arguments);
+			Intent startIntent = new Intent(this, ServerService.class);
 			ContextCompat.startForegroundService(this, startIntent);
 			bindService(startIntent, serverServiceConnection, 0);
 		}
@@ -114,7 +114,9 @@ public class ClientActivity extends SDLActivity {
 				return;
 			}
 			try {
-				serverServiceMessenger.send(ServerService.createExecuteCommandMessage(command));
+				Message message = Message.obtain(null, ServerService.MESSAGE_CODE_EXECUTE_COMMAND, 0, 0);
+				message.getData().putString(ServerService.MESSAGE_EXTRA_COMMAND, command);
+				serverServiceMessenger.send(message);
 			} catch (RemoteException e) {
 				// Connection broken
 				unbindService(serverServiceConnection);

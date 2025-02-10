@@ -39,13 +39,10 @@ public:
 		 * GetCompletePath, FileExists and FolderExists.
 		 */
 		TYPE_ALL_OR_ABSOLUTE = -4,
-	};
 
-	enum class EInitializationType
-	{
-		BASIC,
-		SERVER,
-		CLIENT,
+		STORAGETYPE_BASIC = 0,
+		STORAGETYPE_SERVER,
+		STORAGETYPE_CLIENT,
 	};
 
 	virtual int NumPaths() const = 0;
@@ -76,7 +73,7 @@ public:
 	static const char *FormatTmpPath(char *aBuf, unsigned BufSize, const char *pPath);
 };
 
-extern IStorage *CreateStorage(IStorage::EInitializationType InitializationType, int NumArgs, const char **ppArguments);
+extern IStorage *CreateStorage(int StorageType, int NumArgs, const char **ppArguments);
 extern IStorage *CreateLocalStorage();
 extern IStorage *CreateTempStorage(const char *pDirectory);
 

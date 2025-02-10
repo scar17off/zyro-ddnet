@@ -4,24 +4,11 @@
 #include "network.h"
 #include <base/system.h>
 
-void CNetConnection::SetPeerAddr(const NETADDR *pAddr)
-{
-	m_PeerAddr = *pAddr;
-	net_addr_str(pAddr, m_aPeerAddrStr.data(), m_aPeerAddrStr.size(), true);
-	net_addr_str(pAddr, m_aPeerAddrStrNoPort.data(), m_aPeerAddrStrNoPort.size(), false);
-}
-
-void CNetConnection::ClearPeerAddr()
-{
-	mem_zero(&m_PeerAddr, sizeof(m_PeerAddr));
-	m_aPeerAddrStr[0] = '\0';
-	m_aPeerAddrStrNoPort[0] = '\0';
-}
-
 void CNetConnection::ResetStats()
 {
 	mem_zero(&m_Stats, sizeof(m_Stats));
-	ClearPeerAddr();
+	mem_zero(&m_PeerAddr, sizeof(m_PeerAddr));
+	m_aPeerAddrStr[0] = '\0';
 	m_LastUpdateTime = 0;
 }
 
@@ -45,9 +32,11 @@ void CNetConnection::Reset(bool Rejoin)
 
 	m_LastSendTime = 0;
 	m_LastRecvTime = 0;
+	//m_LastUpdateTime = 0;
 
 	mem_zero(&m_aConnectAddrs, sizeof(m_aConnectAddrs));
 	m_NumConnectAddrs = 0;
+	//mem_zero(&m_PeerAddr, sizeof(m_PeerAddr));
 	m_UnknownSeq = false;
 
 	m_Buffer.Init();
@@ -207,7 +196,8 @@ int CNetConnection::Connect(const NETADDR *pAddr, int NumAddrs)
 
 	// init connection
 	Reset();
-	ClearPeerAddr();
+	mem_zero(&m_PeerAddr, sizeof(m_PeerAddr));
+	m_aPeerAddrStr[0] = '\0';
 
 	for(int i = 0; i < NumAddrs; i++)
 	{
@@ -234,13 +224,14 @@ int CNetConnection::Connect7(const NETADDR *pAddr, int NumAddrs)
 
 	// init connection
 	Reset();
+	mem_zero(&m_PeerAddr, sizeof(m_PeerAddr));
 	for(int i = 0; i < NumAddrs; i++)
 	{
 		m_aConnectAddrs[i] = pAddr[i];
 	}
 	m_LastRecvTime = time_get();
 	m_NumConnectAddrs = NumAddrs;
-	SetPeerAddr(pAddr);
+	m_PeerAddr = *pAddr;
 	SetToken7(GenerateToken7(pAddr));
 	mem_zero(m_aErrorString, sizeof(m_aErrorString));
 	m_State = NET_CONNSTATE_TOKEN;
@@ -276,7 +267,7 @@ void CNetConnection::Disconnect(const char *pReason)
 			if(pReason)
 				SendControl(NET_CTRLMSG_CLOSE, pReason, str_length(pReason) + 1);
 			else
-				SendControl(NET_CTRLMSG_CLOSE, nullptr, 0);
+				SendControl(NET_CTRLMSG_CLOSE, 0, 0);
 		}
 
 		if(pReason != m_aErrorString)
@@ -296,7 +287,8 @@ void CNetConnection::DirectInit(const NETADDR &Addr, SECURITY_TOKEN SecurityToke
 
 	m_State = NET_CONNSTATE_ONLINE;
 
-	SetPeerAddr(&Addr);
+	m_PeerAddr = Addr;
+	net_addr_str(&Addr, m_aPeerAddrStr, sizeof(m_aPeerAddrStr), true);
 	mem_zero(m_aErrorString, sizeof(m_aErrorString));
 
 	int64_t Now = time_get();
@@ -428,7 +420,8 @@ int CNetConnection::Feed(CNetPacketConstruct *pPacket, NETADDR *pAddr, SECURITY_
 						// send response and init connection
 						Reset();
 						m_State = NET_CONNSTATE_PENDING;
-						SetPeerAddr(pAddr);
+						m_PeerAddr = *pAddr;
+						net_addr_str(pAddr, m_aPeerAddrStr, sizeof(m_aPeerAddrStr), true);
 						mem_zero(m_aErrorString, sizeof(m_aErrorString));
 						m_LastSendTime = Now;
 						m_LastRecvTime = Now;
@@ -455,7 +448,8 @@ int CNetConnection::Feed(CNetPacketConstruct *pPacket, NETADDR *pAddr, SECURITY_
 					// connection made
 					if(CtrlMsg == NET_CTRLMSG_CONNECTACCEPT)
 					{
-						SetPeerAddr(pAddr);
+						m_PeerAddr = *pAddr;
+						net_addr_str(pAddr, m_aPeerAddrStr, sizeof(m_aPeerAddrStr), true);
 						if(m_SecurityToken == NET_SECURITY_TOKEN_UNKNOWN && pPacket->m_DataSize >= (int)(1 + sizeof(SECURITY_TOKEN_MAGIC) + sizeof(m_SecurityToken)) && !mem_comp(&pPacket->m_aChunkData[1], SECURITY_TOKEN_MAGIC, sizeof(SECURITY_TOKEN_MAGIC)))
 						{
 							m_SecurityToken = ToSecurityToken(&pPacket->m_aChunkData[1 + sizeof(SECURITY_TOKEN_MAGIC)]);
@@ -469,7 +463,7 @@ int CNetConnection::Feed(CNetPacketConstruct *pPacket, NETADDR *pAddr, SECURITY_
 								dbg_msg("security", "token not supported by server");
 						}
 						if(!IsSixup())
-							SendControl(NET_CTRLMSG_ACCEPT, nullptr, 0);
+							SendControl(NET_CTRLMSG_ACCEPT, 0, 0);
 						m_LastRecvTime = Now;
 						m_State = NET_CONNSTATE_ONLINE;
 						if(g_Config.m_Debug)
@@ -557,7 +551,7 @@ int CNetConnection::Update()
 		}
 
 		if(time_get() - m_LastSendTime > time_freq())
-			SendControl(NET_CTRLMSG_KEEPALIVE, nullptr, 0);
+			SendControl(NET_CTRLMSG_KEEPALIVE, 0, 0);
 	}
 	else if(State() == NET_CONNSTATE_CONNECT)
 	{
@@ -582,7 +576,8 @@ void CNetConnection::SetTimedOut(const NETADDR *pAddr, int Sequence, int Ack, SE
 	m_RemoteClosed = 0;
 
 	m_State = NET_CONNSTATE_ONLINE;
-	SetPeerAddr(pAddr);
+	m_PeerAddr = *pAddr;
+	net_addr_str(pAddr, m_aPeerAddrStr, sizeof(m_aPeerAddrStr), true);
 	mem_zero(m_aErrorString, sizeof(m_aErrorString));
 	m_LastSendTime = Now;
 	m_LastRecvTime = Now;

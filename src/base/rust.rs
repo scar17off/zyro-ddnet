@@ -161,7 +161,7 @@ impl<'a, T> From<&'a mut T> for UserPtr {
 #[derive(Eq)]
 pub struct StrRef<'a>(*const c_char, PhantomData<&'a ()>);
 
-unsafe impl cxx::ExternType for StrRef<'_> {
+unsafe impl<'a> cxx::ExternType for StrRef<'a> {
     type Id = cxx::type_id!("StrRef");
     type Kind = cxx::kind::Trivial;
 }
@@ -204,13 +204,13 @@ impl<'a> From<&'a CStr> for StrRef<'a> {
     }
 }
 
-impl fmt::Debug for StrRef<'_> {
+impl<'a> fmt::Debug for StrRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.to_str().fmt(f)
     }
 }
 
-impl fmt::Display for StrRef<'_> {
+impl<'a> fmt::Display for StrRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.to_str().fmt(f)
     }
@@ -230,7 +230,7 @@ impl<'a> cmp::PartialEq<&'a str> for StrRef<'a> {
 
 impl<'a> cmp::PartialOrd for StrRef<'a> {
     fn partial_cmp(&self, other: &StrRef<'a>) -> Option<cmp::Ordering> {
-        Some(self.to_str().cmp(other.to_str()))
+        self.to_str().partial_cmp(other.to_str())
     }
 }
 
@@ -240,7 +240,7 @@ impl<'a> cmp::Ord for StrRef<'a> {
     }
 }
 
-impl ops::Deref for StrRef<'_> {
+impl<'a> ops::Deref for StrRef<'a> {
     type Target = str;
     fn deref(&self) -> &str {
         self.to_str()

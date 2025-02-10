@@ -865,11 +865,13 @@ int net_addr_comp_noport(const NETADDR *a, const NETADDR *b);
  * @param addr Address to turn into a string.
  * @param string Buffer to fill with the string.
  * @param max_length Maximum size of the string.
- * @param add_port Whether to add the port to the string.
+ * @param add_port add port to string or not
  *
- * @remark The string will always be zero terminated.
+ * @return true on success
+ *
+ * @remark The string will always be zero terminated
  */
-void net_addr_str(const NETADDR *addr, char *string, int max_length, bool add_port);
+bool net_addr_str(const NETADDR *addr, char *string, int max_length, int add_port);
 
 /**
  * Turns url string into a network address struct.

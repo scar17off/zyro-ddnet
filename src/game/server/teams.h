@@ -124,7 +124,6 @@ public:
 	void ResetSavedTeam(int ClientId, int Team);
 	void RequestTeamSwap(CPlayer *pPlayer, CPlayer *pTargetPlayer, int Team);
 	void SwapTeamCharacters(CPlayer *pPrimaryPlayer, CPlayer *pTargetPlayer, int Team);
-	void CancelTeamSwap(CPlayer *pPlayer, int Team);
 	void ProcessSaveTeam();
 
 	int GetFirstEmptyTeam() const;
@@ -209,8 +208,6 @@ public:
 	{
 		if(Team < TEAM_FLOCK || Team >= TEAM_SUPER)
 			return false;
-		if(g_Config.m_SvPracticeByDefault && g_Config.m_SvTestingCommands)
-			return true;
 		if(g_Config.m_SvTeam != SV_TEAM_FORCED_SOLO && Team == TEAM_FLOCK)
 			return false;
 

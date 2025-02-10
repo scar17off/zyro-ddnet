@@ -48,9 +48,7 @@ sed -i "s/TW_KEY_ALIAS/${TW_KEY_ALIAS_ESCAPED}/g" build.gradle
 sed -i "s/TW_VERSION_CODE/${TW_VERSION_CODE}/g" build.gradle
 sed -i "s/TW_VERSION_NAME/${TW_VERSION_NAME}/g" build.gradle
 
-for f in src/main/res/values*; do
-	sed -i "s/DDNet/${APK_BASENAME}/g" "$f/strings.xml"
-done
+sed -i "s/DDNet/${APK_BASENAME}/g" src/main/res/values/strings.xml
 
 sed -i "s/org.ddnet.client/${APK_PACKAGE_NAME}/g" src/main/res/xml/shortcuts.xml
 
@@ -73,7 +71,7 @@ if [[ "${APK_BUILD_TYPE}" == "Debug" ]]; then
 fi
 
 function build_gradle() {
-	./gradlew --warning-mode all "$1"
+	java "-Dorg.gradle.appname=Gradle" -classpath gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain --warning-mode all "$1"
 }
 
 if [[ "${APK_BUILD_TYPE}" == "Debug" ]]; then

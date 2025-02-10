@@ -65,11 +65,11 @@ void CRingBufferBase::Clear()
 void *CRingBufferBase::Allocate(int Size)
 {
 	int WantedSize = (Size + sizeof(CItem) + sizeof(CItem) - 1) / sizeof(CItem) * sizeof(CItem);
-	CItem *pBlock = nullptr;
+	CItem *pBlock = 0;
 
 	// check if we even can fit this block
 	if(WantedSize > m_Size)
-		return nullptr;
+		return 0;
 
 	while(true)
 	{
@@ -94,10 +94,10 @@ void *CRingBufferBase::Allocate(int Size)
 			if(m_Flags & FLAG_RECYCLE)
 			{
 				if(!PopFirst())
-					return nullptr;
+					return 0;
 			}
 			else
-				return nullptr;
+				return 0;
 		}
 	}
 
@@ -172,7 +172,7 @@ void *CRingBufferBase::Prev(void *pCurrent)
 	{
 		pItem = PrevBlock(pItem);
 		if(pItem == m_pProduce)
-			return nullptr;
+			return 0;
 		if(!pItem->m_Free)
 			return pItem + 1;
 	}
@@ -186,7 +186,7 @@ void *CRingBufferBase::Next(void *pCurrent)
 	{
 		pItem = NextBlock(pItem);
 		if(pItem == m_pProduce)
-			return nullptr;
+			return 0;
 		if(!pItem->m_Free)
 			return pItem + 1;
 	}
@@ -195,7 +195,7 @@ void *CRingBufferBase::Next(void *pCurrent)
 void *CRingBufferBase::First()
 {
 	if(m_pConsume->m_Free)
-		return nullptr;
+		return 0;
 	return (void *)(m_pConsume + 1);
 }
 

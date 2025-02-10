@@ -78,7 +78,7 @@ public:
 		}
 		else
 		{
-			return nullptr;
+			return 0;
 		}
 	}
 	void ClearConnectAddress() override
@@ -131,8 +131,8 @@ public:
 
 class CSteamStub : public ISteam
 {
-	const char *GetPlayerName() override { return nullptr; }
-	const NETADDR *GetConnectAddress() override { return nullptr; }
+	const char *GetPlayerName() override { return 0; }
+	const NETADDR *GetConnectAddress() override { return 0; }
 	void ClearConnectAddress() override {}
 	void Update() override {}
 	void ClearGameInfo() override {}

@@ -13,7 +13,7 @@
 //////////////////////////////////////////////////
 CEventHandler::CEventHandler()
 {
-	m_pGameServer = nullptr;
+	m_pGameServer = 0;
 	Clear();
 }
 
@@ -25,9 +25,9 @@ void CEventHandler::SetGameServer(CGameContext *pGameServer)
 void *CEventHandler::Create(int Type, int Size, CClientMask Mask)
 {
 	if(m_NumEvents == MAX_EVENTS)
-		return nullptr;
+		return 0;
 	if(m_CurrentOffset + Size >= MAX_DATASIZE)
-		return nullptr;
+		return 0;
 
 	void *p = &m_aData[m_CurrentOffset];
 	m_aOffsets[m_NumEvents] = m_CurrentOffset;

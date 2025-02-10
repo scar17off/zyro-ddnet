@@ -45,7 +45,7 @@ public:
 	virtual void OnRelease() override;
 	virtual void OnMessage(int MsgType, void *pRawMsg) override;
 
-	bool IsActive() const;
+	bool Active() const;
 };
 
 #endif

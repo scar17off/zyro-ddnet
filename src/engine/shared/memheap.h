@@ -26,7 +26,7 @@ class CHeap
 	CChunk *m_pCurrent;
 
 	void Clear();
-	void NewChunk(size_t ChunkSize);
+	void NewChunk();
 	void *AllocateFromChunk(unsigned int Size, unsigned Alignment);
 
 public:

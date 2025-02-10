@@ -17,14 +17,14 @@
 //////////////////////////////////////////////////
 CGameWorld::CGameWorld()
 {
-	m_pGameServer = nullptr;
-	m_pConfig = nullptr;
-	m_pServer = nullptr;
+	m_pGameServer = 0x0;
+	m_pConfig = 0x0;
+	m_pServer = 0x0;
 
 	m_Paused = false;
 	m_ResetRequested = false;
 	for(auto &pFirstEntityType : m_apFirstEntityTypes)
-		pFirstEntityType = nullptr;
+		pFirstEntityType = 0;
 }
 
 CGameWorld::~CGameWorld()
@@ -44,7 +44,7 @@ void CGameWorld::SetGameServer(CGameContext *pGameServer)
 
 CEntity *CGameWorld::FindFirst(int Type)
 {
-	return Type < 0 || Type >= NUM_ENTTYPES ? nullptr : m_apFirstEntityTypes[Type];
+	return Type < 0 || Type >= NUM_ENTTYPES ? 0 : m_apFirstEntityTypes[Type];
 }
 
 int CGameWorld::FindEntities(vec2 Pos, float Radius, CEntity **ppEnts, int Max, int Type)
@@ -79,7 +79,7 @@ void CGameWorld::InsertEntity(CEntity *pEnt)
 	if(m_apFirstEntityTypes[pEnt->m_ObjType])
 		m_apFirstEntityTypes[pEnt->m_ObjType]->m_pPrevTypeEntity = pEnt;
 	pEnt->m_pNextTypeEntity = m_apFirstEntityTypes[pEnt->m_ObjType];
-	pEnt->m_pPrevTypeEntity = nullptr;
+	pEnt->m_pPrevTypeEntity = 0x0;
 	m_apFirstEntityTypes[pEnt->m_ObjType] = pEnt;
 }
 
@@ -101,8 +101,8 @@ void CGameWorld::RemoveEntity(CEntity *pEnt)
 	if(m_pNextTraverseEntity == pEnt)
 		m_pNextTraverseEntity = pEnt->m_pNextTypeEntity;
 
-	pEnt->m_pNextTypeEntity = nullptr;
-	pEnt->m_pPrevTypeEntity = nullptr;
+	pEnt->m_pNextTypeEntity = 0;
+	pEnt->m_pPrevTypeEntity = 0;
 }
 
 //
@@ -211,6 +211,9 @@ void CGameWorld::Tick()
 
 	if(!m_Paused)
 	{
+		if(GameServer()->m_pController->IsForceBalanced())
+			GameServer()->SendChat(-1, TEAM_ALL, "Teams have been balanced");
+
 		// update all objects
 		for(int i = 0; i < NUM_ENTTYPES; i++)
 		{
@@ -299,7 +302,7 @@ CCharacter *CGameWorld::IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, v
 {
 	// Find other players
 	float ClosestLen = distance(Pos0, Pos1) * 100.0f;
-	CCharacter *pClosest = nullptr;
+	CCharacter *pClosest = 0;
 
 	CCharacter *p = (CCharacter *)FindFirst(ENTTYPE_CHARACTER);
 	for(; p; p = (CCharacter *)p->TypeNext())
@@ -337,9 +340,9 @@ CCharacter *CGameWorld::ClosestCharacter(vec2 Pos, float Radius, const CEntity *
 {
 	// Find other players
 	float ClosestRange = Radius * 2;
-	CCharacter *pClosest = nullptr;
+	CCharacter *pClosest = 0;
 
-	CCharacter *p = (CCharacter *)FindFirst(ENTTYPE_CHARACTER);
+	CCharacter *p = (CCharacter *)GameServer()->m_World.FindFirst(ENTTYPE_CHARACTER);
 	for(; p; p = (CCharacter *)p->TypeNext())
 	{
 		if(p == pNotThis)
@@ -383,7 +386,7 @@ std::vector<CCharacter *> CGameWorld::IntersectedCharacters(vec2 Pos0, vec2 Pos1
 
 void CGameWorld::ReleaseHooked(int ClientId)
 {
-	CCharacter *pChr = (CCharacter *)FindFirst(CGameWorld::ENTTYPE_CHARACTER);
+	CCharacter *pChr = (CCharacter *)CGameWorld::FindFirst(CGameWorld::ENTTYPE_CHARACTER);
 	for(; pChr; pChr = (CCharacter *)pChr->TypeNext())
 	{
 		if(pChr->Core()->HookedPlayer() == ClientId && !pChr->IsSuper())

@@ -114,7 +114,7 @@ int main(int argc, const char **argv)
 		return -1;
 	}
 
-	IStorage *pStorage = CreateStorage(IStorage::EInitializationType::BASIC, argc, argv);
+	IStorage *pStorage = CreateStorage(IStorage::STORAGETYPE_BASIC, argc, argv);
 	if(!pStorage)
 	{
 		dbg_msg("map_convert_07", "error loading storage");
@@ -202,7 +202,7 @@ int main(int argc, const char **argv)
 			if(!pItem)
 				return -1;
 			Size = sizeof(CMapItemImage);
-			NewImageItem.m_Version = 1;
+			NewImageItem.m_Version = CMapItemImage::CURRENT_VERSION;
 		}
 		g_DataWriter.AddItem(Type, Id, Size, pItem, &Uuid);
 	}

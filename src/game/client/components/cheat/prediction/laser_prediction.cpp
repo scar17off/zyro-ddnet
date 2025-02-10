@@ -1,4 +1,5 @@
 #include "laser_prediction.h"
+
 #include <game/client/prediction/entities/laser.h>
 #include <game/client/gameclient.h>
 #include <engine/engine.h>

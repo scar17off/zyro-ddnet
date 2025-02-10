@@ -115,7 +115,7 @@ void CGhost::CGhostPath::Add(const CGhostCharacter &Char)
 CGhostCharacter *CGhost::CGhostPath::Get(int Index)
 {
 	if(Index < 0 || Index >= m_NumItems)
-		return nullptr;
+		return 0;
 
 	int Chunk = Index / m_ChunkSize;
 	int Pos = Index % m_ChunkSize;
@@ -354,10 +354,14 @@ void CGhost::OnRender()
 			const auto *pSkin = m_pClient->m_Skins.FindOrNullptr("x_ninja");
 			if(pSkin != nullptr)
 			{
+				bool IsTeamplay = false;
+				if(m_pClient->m_Snap.m_pGameInfoObj)
+					IsTeamplay = (m_pClient->m_Snap.m_pGameInfoObj->m_GameFlags & GAMEFLAG_TEAMS) != 0;
+
 				GhostNinjaRenderInfo = Ghost.m_RenderInfo;
 				GhostNinjaRenderInfo.Apply(pSkin);
-				GhostNinjaRenderInfo.m_CustomColoredSkin = m_pClient->IsTeamPlay();
-				if(!GhostNinjaRenderInfo.m_CustomColoredSkin)
+				GhostNinjaRenderInfo.m_CustomColoredSkin = IsTeamplay;
+				if(!IsTeamplay)
 				{
 					GhostNinjaRenderInfo.m_ColorBody = ColorRGBA(1, 1, 1);
 					GhostNinjaRenderInfo.m_ColorFeet = ColorRGBA(1, 1, 1);

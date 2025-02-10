@@ -76,7 +76,6 @@ void CConsoleLogger::OnConsoleDeletion()
 enum class EArgumentCompletionType
 {
 	NONE,
-	MAP,
 	TUNE,
 	SETTING,
 	KEY,
@@ -91,8 +90,6 @@ public:
 };
 
 static const CArgumentCompletionEntry gs_aArgumentCompletionEntries[] = {
-	{EArgumentCompletionType::MAP, "sv_map", 0},
-	{EArgumentCompletionType::MAP, "change_map", 0},
 	{EArgumentCompletionType::TUNE, "tune", 0},
 	{EArgumentCompletionType::TUNE, "tune_reset", 0},
 	{EArgumentCompletionType::TUNE, "toggle_tune", 0},
@@ -183,7 +180,7 @@ const ColorRGBA CGameConsole::ms_SearchSelectedColor = ColorRGBA(1.0f, 1.0f, 0.0
 
 CGameConsole::CInstance::CInstance(int Type)
 {
-	m_pHistoryEntry = nullptr;
+	m_pHistoryEntry = 0x0;
 
 	m_Type = Type;
 
@@ -283,7 +280,7 @@ void CGameConsole::CInstance::PumpBacklogPending()
 void CGameConsole::CInstance::ClearHistory()
 {
 	m_History.Init();
-	m_pHistoryEntry = nullptr;
+	m_pHistoryEntry = 0;
 }
 
 void CGameConsole::CInstance::Reset()
@@ -488,11 +485,10 @@ bool CGameConsole::CInstance::OnInput(const IInput::CEvent &Event)
 				char aSearch[IConsole::CMDLINE_LENGTH];
 				GetCommand(m_aCompletionBuffer, aSearch);
 
-				// Command completion
-				const bool RemoteConsoleCompletion = m_Type == CGameConsole::CONSOLETYPE_REMOTE && m_pGameConsole->Client()->RconAuthed();
-				const bool UseTempCommands = RemoteConsoleCompletion && m_pGameConsole->Client()->UseTempRconCommands();
+				// command completion
+				const bool UseTempCommands = m_Type == CGameConsole::CONSOLETYPE_REMOTE && m_pGameConsole->Client()->RconAuthed() && m_pGameConsole->Client()->UseTempRconCommands();
 				int CompletionEnumerationCount = m_pGameConsole->m_pConsole->PossibleCommands(aSearch, m_CompletionFlagmask, UseTempCommands);
-				if(m_Type == CGameConsole::CONSOLETYPE_LOCAL || RemoteConsoleCompletion)
+				if(m_Type == CGameConsole::CONSOLETYPE_LOCAL || m_pGameConsole->Client()->RconAuthed())
 				{
 					if(CompletionEnumerationCount)
 					{
@@ -511,9 +507,7 @@ bool CGameConsole::CInstance::OnInput(const IInput::CEvent &Event)
 
 				// Argument completion
 				const auto [CompletionType, CompletionPos] = ArgumentCompletion(GetString());
-				if(CompletionType == EArgumentCompletionType::MAP)
-					CompletionEnumerationCount = m_pGameConsole->PossibleMaps(m_aCompletionBufferArgument);
-				else if(CompletionType == EArgumentCompletionType::TUNE)
+				if(CompletionType == EArgumentCompletionType::TUNE)
 					CompletionEnumerationCount = PossibleTunings(m_aCompletionBufferArgument);
 				else if(CompletionType == EArgumentCompletionType::SETTING)
 					CompletionEnumerationCount = m_pGameConsole->m_pConsole->PossibleCommands(m_aCompletionBufferArgument, m_CompletionFlagmask, UseTempCommands);
@@ -526,9 +520,7 @@ bool CGameConsole::CInstance::OnInput(const IInput::CEvent &Event)
 						m_CompletionChosenArgument = 0;
 					m_CompletionChosenArgument = (m_CompletionChosenArgument + Direction + CompletionEnumerationCount) % CompletionEnumerationCount;
 					m_CompletionArgumentPosition = CompletionPos;
-					if(CompletionType == EArgumentCompletionType::MAP)
-						m_pGameConsole->PossibleMaps(m_aCompletionBufferArgument, PossibleArgumentsCompleteCallback, this);
-					else if(CompletionType == EArgumentCompletionType::TUNE)
+					if(CompletionType == EArgumentCompletionType::TUNE)
 						PossibleTunings(m_aCompletionBufferArgument, PossibleArgumentsCompleteCallback, this);
 					else if(CompletionType == EArgumentCompletionType::SETTING)
 						m_pGameConsole->m_pConsole->PossibleCommands(m_aCompletionBufferArgument, m_CompletionFlagmask, UseTempCommands, PossibleArgumentsCompleteCallback, this);
@@ -923,20 +915,6 @@ void CGameConsole::OnReset()
 	m_RemoteConsole.Reset();
 }
 
-int CGameConsole::PossibleMaps(const char *pStr, IConsole::FPossibleCallback pfnCallback, void *pUser)
-{
-	int Index = 0;
-	for(const std::string &Entry : Client()->MaplistEntries())
-	{
-		if(str_find_nocase(Entry.c_str(), pStr))
-		{
-			pfnCallback(Index, Entry.c_str(), pUser);
-			Index++;
-		}
-	}
-	return Index;
-}
-
 // only defined for 0<=t<=1
 static float ConsoleScaleFunc(float t)
 {
@@ -1153,20 +1131,20 @@ void CGameConsole::OnRender()
 		{
 			pConsole->m_MouseRelease = GetMousePosition();
 		}
-		const float ScaledLineHeight = LineHeight / ScreenSize.y;
-		if(absolute(m_TouchState.m_ScrollAmount.y) >= ScaledLineHeight)
+		const float ScaledRowHeight = RowHeight / ScreenSize.y;
+		if(absolute(m_TouchState.m_ScrollAmount.y) >= ScaledRowHeight)
 		{
 			if(m_TouchState.m_ScrollAmount.y > 0.0f)
 			{
 				pConsole->m_BacklogCurLine += pConsole->GetLinesToScroll(-1, 1);
-				m_TouchState.m_ScrollAmount.y -= ScaledLineHeight;
+				m_TouchState.m_ScrollAmount.y -= ScaledRowHeight;
 			}
 			else
 			{
 				--pConsole->m_BacklogCurLine;
 				if(pConsole->m_BacklogCurLine < 0)
 					pConsole->m_BacklogCurLine = 0;
-				m_TouchState.m_ScrollAmount.y += ScaledLineHeight;
+				m_TouchState.m_ScrollAmount.y += ScaledRowHeight;
 			}
 			pConsole->m_HasSelection = false;
 		}
@@ -1244,9 +1222,7 @@ void CGameConsole::OnRender()
 					Info.m_WantedCompletion = pConsole->m_CompletionChosenArgument;
 					Info.m_TotalWidth = 0.0f;
 					Info.m_pCurrentCmd = pConsole->m_aCompletionBufferArgument;
-					if(CompletionType == EArgumentCompletionType::MAP)
-						NumArguments = PossibleMaps(Info.m_pCurrentCmd, PossibleCommandsRenderCallback, &Info);
-					else if(CompletionType == EArgumentCompletionType::TUNE)
+					if(CompletionType == EArgumentCompletionType::TUNE)
 						NumArguments = PossibleTunings(Info.m_pCurrentCmd, PossibleCommandsRenderCallback, &Info);
 					else if(CompletionType == EArgumentCompletionType::SETTING)
 						NumArguments = m_pConsole->PossibleCommands(Info.m_pCurrentCmd, pConsole->m_CompletionFlagmask, m_ConsoleType != CGameConsole::CONSOLETYPE_LOCAL && Client()->RconAuthed() && Client()->UseTempRconCommands(), PossibleCommandsRenderCallback, &Info);
@@ -1449,15 +1425,15 @@ void CGameConsole::OnRender()
 		str_format(aBuf, sizeof(aBuf), Localize("Lines %d - %d (%s)"), pConsole->m_BacklogCurLine + 1, pConsole->m_BacklogCurLine + pConsole->m_LinesRendered, pConsole->m_BacklogCurLine != 0 ? Localize("Locked") : Localize("Following"));
 		TextRender()->Text(10.0f, FONT_SIZE / 2.f, FONT_SIZE, aBuf);
 
-		if(m_ConsoleType == CONSOLETYPE_REMOTE && (Client()->ReceivingRconCommands() || Client()->ReceivingMaplist()))
+		if(m_ConsoleType == CONSOLETYPE_REMOTE && Client()->ReceivingRconCommands())
 		{
-			const float Percentage = Client()->ReceivingRconCommands() ? Client()->GotRconCommandsPercentage() : Client()->GotMaplistPercentage();
+			float Percentage = Client()->GotRconCommandsPercentage();
 			SProgressSpinnerProperties ProgressProps;
 			ProgressProps.m_Progress = Percentage;
 			Ui()->RenderProgressSpinner(vec2(Screen.w / 4.0f + FONT_SIZE / 2.f, FONT_SIZE), FONT_SIZE / 2.f, ProgressProps);
 
 			char aLoading[128];
-			str_copy(aLoading, Client()->ReceivingRconCommands() ? Localize("Loading commands…") : Localize("Loading maps…"));
+			str_copy(aLoading, Localize("Loading commands…"));
 			if(Percentage > 0)
 			{
 				char aPercentage[8];

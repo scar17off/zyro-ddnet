@@ -11,7 +11,7 @@ static void Nothing(void *pUser)
 
 TEST(Thread, Detach)
 {
-	void *pThread = thread_init(Nothing, nullptr, "detach");
+	void *pThread = thread_init(Nothing, 0, "detach");
 	thread_detach(pThread);
 }
 

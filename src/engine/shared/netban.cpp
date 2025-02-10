@@ -84,7 +84,7 @@ template<class T, int HashCount>
 typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, const CBanInfo *pInfo, const CNetHash *pNetHash)
 {
 	if(!m_pFirstFree)
-		return nullptr;
+		return 0;
 
 	// create new ban
 	CBan<T> *pBan = m_pFirstFree;
@@ -117,7 +117,7 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Add(const T *pData, 
 template<class T, int HashCount>
 int CNetBan::CBanPool<T, HashCount>::Remove(CBan<T> *pBan)
 {
-	if(pBan == nullptr)
+	if(pBan == 0)
 		return -1;
 
 	// remove from hash list
@@ -196,7 +196,7 @@ template<class T, int HashCount>
 typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Get(int Index) const
 {
 	if(Index < 0 || Index >= Num())
-		return nullptr;
+		return 0;
 
 	for(CNetBan::CBan<T> *pBan = m_pFirstUsed; pBan; pBan = pBan->m_pNext, --Index)
 	{
@@ -204,7 +204,7 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Get(int Index) const
 			return pBan;
 	}
 
-	return nullptr;
+	return 0;
 }
 
 template<class T>

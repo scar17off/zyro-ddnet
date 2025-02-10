@@ -41,7 +41,7 @@ void CVoting::Callvote(const char *pType, const char *pValue, const char *pReaso
 		Client()->SendPackMsgActive(&Msg, MSGFLAG_VITAL, true);
 		return;
 	}
-	CNetMsg_Cl_CallVote Msg = {nullptr};
+	CNetMsg_Cl_CallVote Msg = {0};
 	Msg.m_pType = pType;
 	Msg.m_pValue = pValue;
 	Msg.m_pReason = pReason;
@@ -173,14 +173,14 @@ void CVoting::AddOption(const char *pDescription)
 		pOption = m_pRecycleFirst;
 		m_pRecycleFirst = m_pRecycleFirst->m_pNext;
 		if(m_pRecycleFirst)
-			m_pRecycleFirst->m_pPrev = nullptr;
+			m_pRecycleFirst->m_pPrev = 0;
 		else
-			m_pRecycleLast = nullptr;
+			m_pRecycleLast = 0;
 	}
 	else
 		pOption = m_Heap.Allocate<CVoteOptionClient>();
 
-	pOption->m_pNext = nullptr;
+	pOption->m_pNext = 0;
 	pOption->m_pPrev = m_pLast;
 	if(pOption->m_pPrev)
 		pOption->m_pPrev->m_pNext = pOption;
@@ -210,7 +210,7 @@ void CVoting::RemoveOption(const char *pDescription)
 			--m_NumVoteOptions;
 
 			// add it to recycle list
-			pOption->m_pNext = nullptr;
+			pOption->m_pNext = 0;
 			pOption->m_pPrev = m_pRecycleLast;
 			if(pOption->m_pPrev)
 				pOption->m_pPrev->m_pNext = pOption;
@@ -228,11 +228,11 @@ void CVoting::ClearOptions()
 	m_Heap.Reset();
 
 	m_NumVoteOptions = 0;
-	m_pFirst = nullptr;
-	m_pLast = nullptr;
+	m_pFirst = 0;
+	m_pLast = 0;
 
-	m_pRecycleFirst = nullptr;
-	m_pRecycleLast = nullptr;
+	m_pRecycleFirst = 0;
+	m_pRecycleLast = 0;
 }
 
 void CVoting::OnReset()
@@ -338,7 +338,7 @@ void CVoting::OnMessage(int MsgType, void *pRawMsg)
 
 void CVoting::Render()
 {
-	if((!g_Config.m_ClShowVotesAfterVoting && !m_pClient->m_Scoreboard.IsActive() && TakenChoice()) || !IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if((!g_Config.m_ClShowVotesAfterVoting && !m_pClient->m_Scoreboard.Active() && TakenChoice()) || !IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 	const int Seconds = SecondsLeft();
 	if(Seconds < 0)

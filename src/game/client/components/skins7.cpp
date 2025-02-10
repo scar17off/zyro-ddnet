@@ -24,20 +24,15 @@ const char *const CSkins7::ms_apSkinPartNames[protocol7::NUM_SKINPARTS] = {"body
 const char *const CSkins7::ms_apSkinPartNamesLocalized[protocol7::NUM_SKINPARTS] = {Localizable("Body", "skins"), Localizable("Marking", "skins"), Localizable("Decoration", "skins"), Localizable("Hands", "skins"), Localizable("Feet", "skins"), Localizable("Eyes", "skins")};
 const char *const CSkins7::ms_apColorComponents[NUM_COLOR_COMPONENTS] = {"hue", "sat", "lgt", "alp"};
 
-char *CSkins7::ms_apSkinNameVariables[NUM_DUMMIES] = {nullptr};
-char *CSkins7::ms_apSkinVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{nullptr}};
-int *CSkins7::ms_apUCCVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{nullptr}};
-int unsigned *CSkins7::ms_apColorVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{nullptr}};
+char *CSkins7::ms_apSkinNameVariables[NUM_DUMMIES] = {0};
+char *CSkins7::ms_apSkinVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{0}};
+int *CSkins7::ms_apUCCVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{0}};
+int unsigned *CSkins7::ms_apColorVariables[NUM_DUMMIES][protocol7::NUM_SKINPARTS] = {{0}};
 
 #define SKINS_DIR "skins7"
 
 // TODO: uncomment
 // const float MIN_EYE_BODY_COLOR_DIST = 80.f; // between body and eyes (LAB color space)
-
-bool CSkins7::IsSpecialSkin(const char *pName)
-{
-	return str_startswith(pName, "x_") != nullptr;
-}
 
 int CSkins7::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 {
@@ -101,7 +96,7 @@ int CSkins7::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser
 
 	// set skin part data
 	Part.m_Flags = 0;
-	if(IsSpecialSkin(pName))
+	if(pName[0] == 'x' && pName[1] == '_')
 		Part.m_Flags |= SKINFLAG_SPECIAL;
 	if(DirType != IStorage::TYPE_SAVE)
 		Part.m_Flags |= SKINFLAG_STANDARD;
@@ -135,7 +130,7 @@ int CSkins7::SkinScan(const char *pName, int IsDir, int DirType, void *pUser)
 	// init
 	CSkin Skin;
 	str_copy(Skin.m_aName, pName, 1 + str_length(pName) - str_length(".json"));
-	const bool SpecialSkin = IsSpecialSkin(pName);
+	const bool SpecialSkin = pName[0] == 'x' && pName[1] == '_';
 	Skin.m_Flags = SpecialSkin ? SKINFLAG_SPECIAL : 0;
 	if(DirType != IStorage::TYPE_SAVE)
 		Skin.m_Flags |= SKINFLAG_STANDARD;
@@ -435,7 +430,7 @@ const CSkins7::CSkinPart *CSkins7::FindSkinPartOrNullptr(int Part, const char *p
 
 const CSkins7::CSkinPart *CSkins7::FindDefaultSkinPart(int Part) const
 {
-	const char *pDefaultPartName = Part == protocol7::SKINPART_MARKING || Part == protocol7::SKINPART_DECORATION ? "" : "standard";
+	const char *pDefaultPartName = Part == protocol7::SKINPART_MARKING || Part == protocol7::SKINPART_DECORATION ? "" : "default";
 	const CSkinPart *pDefault = FindSkinPartOrNullptr(Part, pDefaultPartName, false);
 	if(pDefault != nullptr)
 	{
@@ -543,7 +538,8 @@ bool CSkins7::ValidateSkinParts(char *apPartNames[protocol7::NUM_SKINPARTS], int
 
 bool CSkins7::SaveSkinfile(const char *pName, int Dummy)
 {
-	dbg_assert(!IsSpecialSkin(pName), "Cannot save special skins");
+	const bool SpecialSkin = pName[0] == 'x' && pName[1] == '_';
+	dbg_assert(!SpecialSkin, "Cannot save special skins");
 
 	char aBuf[IO_MAX_PATH_LENGTH];
 	str_format(aBuf, sizeof(aBuf), SKINS_DIR "/%s.json", pName);

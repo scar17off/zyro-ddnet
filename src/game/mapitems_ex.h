@@ -13,6 +13,11 @@ enum
 
 struct CMapItemTest
 {
+	enum
+	{
+		CURRENT_VERSION = 1
+	};
+
 	int m_Version;
 	int m_aFields[2];
 	int m_Field3;
@@ -21,6 +26,10 @@ struct CMapItemTest
 
 struct CMapItemAutoMapperConfig
 {
+	enum
+	{
+		CURRENT_VERSION = 1
+	};
 	enum
 	{
 		FLAG_AUTOMATIC = 1

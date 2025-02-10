@@ -78,7 +78,7 @@ int main(int argc, const char **argv)
 	CCmdlineFix CmdlineFix(&argc, &argv);
 	log_set_global_logger_default();
 
-	IStorage *pStorage = CreateStorage(IStorage::EInitializationType::BASIC, argc, argv);
+	IStorage *pStorage = CreateStorage(IStorage::STORAGETYPE_BASIC, argc, argv);
 	if(!pStorage || argc <= 1 || argc > 3)
 	{
 		dbg_msg("map_optimize", "Invalid parameters or other unknown error.");
@@ -190,7 +190,7 @@ int main(int argc, const char **argv)
 		else if(Type == MAPITEMTYPE_IMAGE)
 		{
 			CMapItemImage_v2 *pImg = (CMapItemImage_v2 *)pPtr;
-			if(!pImg->m_External && pImg->m_Version < 2)
+			if(!pImg->m_External && pImg->m_Version < CMapItemImage_v2::CURRENT_VERSION)
 			{
 				SMapOptimizeItem Item;
 				Item.m_pImage = pImg;

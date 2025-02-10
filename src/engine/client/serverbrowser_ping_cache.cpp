@@ -119,16 +119,15 @@ int CServerBrowserPingCache::NumEntries() const
 
 void CServerBrowserPingCache::CachePing(const NETADDR &Addr, int Ping)
 {
-	NETADDR StoredAddr = Addr;
-	StoredAddr.type &= ~NETTYPE_TW7;
-	StoredAddr.port = 0;
-	m_Entries[StoredAddr] = Ping;
+	NETADDR AddrWithoutPort = Addr;
+	AddrWithoutPort.port = 0;
+	m_Entries[AddrWithoutPort] = Ping;
 	if(m_pDisk)
 	{
 		sqlite3 *pSqlite = m_pDisk.get();
 		IConsole *pConsole = m_pConsole;
 		char aAddr[NETADDR_MAXSTRSIZE];
-		net_addr_str(&StoredAddr, aAddr, sizeof(aAddr), false);
+		net_addr_str(&AddrWithoutPort, aAddr, sizeof(aAddr), false);
 
 		bool Error = false;
 		Error = Error || !m_pStoreStmt;
@@ -148,10 +147,9 @@ int CServerBrowserPingCache::GetPing(const NETADDR *pAddrs, int NumAddrs) const
 	int Ping = -1;
 	for(int i = 0; i < NumAddrs; i++)
 	{
-		NETADDR LookupAddr = pAddrs[i];
-		LookupAddr.type &= ~NETTYPE_TW7;
-		LookupAddr.port = 0;
-		auto Entry = m_Entries.find(LookupAddr);
+		NETADDR Addr = pAddrs[i];
+		Addr.port = 0;
+		auto Entry = m_Entries.find(Addr);
 		if(Entry == m_Entries.end())
 		{
 			continue;

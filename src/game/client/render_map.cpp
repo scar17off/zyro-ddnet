@@ -30,7 +30,7 @@ CMapBasedEnvelopePointAccess::CMapBasedEnvelopePointAccess(CDataFileReader *pRea
 	for(int EnvIndex = 0; EnvIndex < EnvNum; EnvIndex++)
 	{
 		CMapItemEnvelope *pEnvelope = static_cast<CMapItemEnvelope *>(pReader->GetItem(EnvStart + EnvIndex));
-		if(pEnvelope->m_Version >= CMapItemEnvelope::VERSION_TEEWORLDS_BEZIER)
+		if(pEnvelope->m_Version >= CMapItemEnvelope_v3::CURRENT_VERSION)
 		{
 			FoundBezierEnvelope = true;
 			break;
@@ -124,6 +124,16 @@ const CEnvPointBezier *CMapBasedEnvelopePointAccess::GetBezier(int Index) const
 	return nullptr;
 }
 
+static double CubicRoot(double x)
+{
+	if(x == 0.0)
+		return 0.0;
+	else if(x < 0.0)
+		return -std::exp(std::log(-x) / 3.0);
+	else
+		return std::exp(std::log(x) / 3.0);
+}
+
 static float SolveBezier(float x, float p0, float p1, float p2, float p3)
 {
 	const double x3 = -p0 + 3.0 * p1 - 3.0 * p2 + p3;
@@ -183,12 +193,12 @@ static float SolveBezier(float x, float p0, float p1, float p2, float p3)
 		{
 			// only one 'real' solution
 			const double s = std::sqrt(D);
-			return std::cbrt(s - q) - std::cbrt(s + q) - sub;
+			return CubicRoot(s - q) - CubicRoot(s + q) - sub;
 		}
 		else if(D == 0.0)
 		{
 			// one single, one double solution or triple solution
-			const double s = std::cbrt(-q);
+			const double s = CubicRoot(-q);
 			const double t = 2.0 * s - sub;
 
 			if(0.0 <= t && t <= 1.0001)

@@ -3,7 +3,6 @@
 #ifndef ENGINE_SERVER_H
 #define ENGINE_SERVER_H
 
-#include <array>
 #include <optional>
 #include <type_traits>
 
@@ -61,9 +60,7 @@ public:
 	virtual bool ClientIngame(int ClientId) const = 0;
 	virtual bool GetClientInfo(int ClientId, CClientInfo *pInfo) const = 0;
 	virtual void SetClientDDNetVersion(int ClientId, int DDNetVersion) = 0;
-	virtual const NETADDR *ClientAddr(int ClientId) const = 0;
-	virtual const std::array<char, NETADDR_MAXSTRSIZE> &ClientAddrStringImpl(int ClientId, bool IncludePort) const = 0;
-	inline const char *ClientAddrString(int ClientId, bool IncludePort) const { return ClientAddrStringImpl(ClientId, IncludePort).data(); }
+	virtual void GetClientAddr(int ClientId, char *pAddrStr, int Size) const = 0;
 
 	/**
 	 * Returns the version of the client with the given client ID.
@@ -267,6 +264,8 @@ public:
 	virtual void StopRecord(int ClientId) = 0;
 	virtual bool IsRecording(int ClientId) = 0;
 	virtual void StopDemos() = 0;
+
+	virtual void GetClientAddr(int ClientId, NETADDR *pAddr) const = 0;
 
 	virtual int *GetIdMap(int ClientId) = 0;
 
