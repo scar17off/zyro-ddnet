@@ -12,6 +12,12 @@ public:
     float GetWeaponReach(int Weapon);
     int SearchTarget();
     bool InFoV(vec2 Position);
+
+    int GetCurrentTarget() const { return m_CurrentTarget; }
+    void ResetTarget() { m_CurrentTarget = -1; }
+
+private:
+    int m_CurrentTarget = -1;
 };
 
 #endif

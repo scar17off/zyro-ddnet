@@ -47,6 +47,9 @@ int CAimbot::SearchTarget()
         }
     }
 
+    // Update current target
+    m_CurrentTarget = NearestPlayer;
+
     return NearestPlayer;
 }
 
@@ -87,7 +90,7 @@ void CAimbot::OnRender()
     if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
         return;
     
-    if(!g_Config.m_ZrAimbot || !m_pClient->m_Snap.m_pLocalCharacter)
+    if(!m_pClient->m_Snap.m_pLocalCharacter)
         return;
     
     vec2 InitPos = m_pClient->m_LocalCharacterPos;

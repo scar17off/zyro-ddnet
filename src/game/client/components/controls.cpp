@@ -33,6 +33,9 @@ void CControls::OnReset()
 		AmmoCount = 0;
 
 	m_LastSendTime = 0;
+
+	// Reset aimbot target
+	m_pClient->m_Aimbot.ResetTarget();
 }
 
 void CControls::ResetInput(int Dummy)
