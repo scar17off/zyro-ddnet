@@ -3,6 +3,13 @@
 
 #include <game/client/component.h>
 
+struct WeaponConfig {
+    int *m_pEnabled;
+    int *m_pFoV;
+    int *m_pSilent;
+    const char *m_pName;
+};
+
 class CAimbot : public CComponent
 {
 public:
@@ -11,7 +18,8 @@ public:
 
     float GetWeaponReach(int Weapon);
     int SearchTarget();
-    bool InFoV(vec2 Position);
+    bool InFoV(vec2 Position, int Weapon);
+    const WeaponConfig* GetWeaponConfig(int Weapon) const;
 
     int GetCurrentTarget() const { return m_CurrentTarget; }
     void ResetTarget() { m_CurrentTarget = -1; }

@@ -307,85 +307,110 @@ int CControls::SnapInput(int *pData)
 	// Cheat components
 	if(g_Config.m_ZrAimbot)
 	{
+		// yeah guys this code is supposed to be shitcode, but it works
+		// it's just made for convenience and to be able to use aimbot for both weapons and hooks at the same time
+		// however, it's not optimized and can be improved, but it works for now
 		bool HookPressed = (m_aInputData[g_Config.m_ClDummy].m_Hook != 0) && (m_aLastData[g_Config.m_ClDummy].m_Hook == 0);
 		bool FirePressed = (m_aInputData[g_Config.m_ClDummy].m_Fire & 1) && !(m_aLastData[g_Config.m_ClDummy].m_Fire & 1);
 		bool IsHooking = (m_aInputData[g_Config.m_ClDummy].m_Hook != 0);
 		bool IsFiring = (m_aInputData[g_Config.m_ClDummy].m_Fire & 1);
 
-		// Get current weapon for automatic weapon check
+		// Get current weapon and its config
 		int CurrentWeapon = m_pClient->m_Snap.m_pLocalCharacter ? m_pClient->m_Snap.m_pLocalCharacter->m_Weapon : -1;
-		bool IsAutoWeapon = (CurrentWeapon == WEAPON_GRENADE || CurrentWeapon == WEAPON_LASER || CurrentWeapon == WEAPON_SHOTGUN);
+		
+		// Get both configs upfront
+		const WeaponConfig* pHookConfig = m_pClient->m_Aimbot.GetWeaponConfig(-1);
+		const WeaponConfig* pWeaponConfig = m_pClient->m_Aimbot.GetWeaponConfig(CurrentWeapon);
+		
+		// Handle both actions independently
+		bool UseHookAimbot = (IsHooking || HookPressed) && pHookConfig && *pHookConfig->m_pEnabled;
+		bool UseWeaponAimbot = (IsFiring || FirePressed) && pWeaponConfig && *pWeaponConfig->m_pEnabled;
 
-		// Trigger aimbot on:
-		// - Hook press
-		// - Initial fire press for non-auto weapons
-		// - Continuous fire for auto weapons
-		// - Fire press while hooking
-		if(HookPressed || 
-		   (FirePressed && !IsHooking && !IsAutoWeapon) || 
-		   (IsFiring && !IsHooking && IsAutoWeapon) ||
-		   (FirePressed && IsHooking && m_aLastData[g_Config.m_ClDummy].m_Hook))
+		bool IsAutoWeapon = (CurrentWeapon == WEAPON_GRENADE || CurrentWeapon == WEAPON_LASER || CurrentWeapon == WEAPON_SHOTGUN);
+		vec2 WeaponAimPos(0, 0);
+		vec2 HookAimPos(0, 0);
+
+		// Process weapon aim
+		if(UseWeaponAimbot && ((FirePressed && !IsAutoWeapon) || (IsFiring && IsAutoWeapon)))
 		{
 			int TargetClientId = m_pClient->m_Aimbot.SearchTarget();
 			if(TargetClientId != -1)
 			{
-				int LocalClientId = m_pClient->m_Snap.m_LocalClientId;
-				vec2 LocalPos = m_pClient->m_aClients[LocalClientId].m_RenderPos;
-				vec2 PlayerPos = m_pClient->m_aClients[TargetClientId].m_RenderPos;
-				vec2 AimPosition(0, 0);
-
-				if(HookPressed)
+				if(CurrentWeapon == WEAPON_LASER)
 				{
-					// Try edge scan first for hook
-					AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
-					
-					// If edge scan fails, try prediction as fallback
-					if(length(AimPosition) == 0.0f)
-					{
-						vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
-						vec2 targetVel = m_pClient->m_aClients[TargetClientId].m_Predicted.m_Vel;
-						vec2 predictedPos = PlayerPos;
-						
-						if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
-						{
-							// Verify the predicted position with edge scan
-							vec2 predictedDir = predictedPos - LocalPos;
-							if(m_pClient->m_HookHitscan.EdgeScan(TargetClientId).x != 0.0f)
-							{
-								AimPosition = predictedDir;
-							}
-						}
-					}
-				}
-				else if(CurrentWeapon == WEAPON_LASER)
-				{
-					// First try direct shot with edge scan
 					if(!g_Config.m_ZrAimbotLaserBounceOnly)
 					{
-						AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+						WeaponAimPos = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
 					}
 
-					// If direct shot failed and bounce is enabled, try bounce
-					if(g_Config.m_ZrAimbotLaserUseBounce && (length(AimPosition) == 0.0f || g_Config.m_ZrAimbotLaserBounceOnly))
+					if(g_Config.m_ZrAimbotLaserUseBounce && (length(WeaponAimPos) == 0.0f || g_Config.m_ZrAimbotLaserBounceOnly))
 					{
-						// Get current aim angle and FOV
 						float CurrentAngle = angle(vec2(m_aInputData[g_Config.m_ClDummy].m_TargetX, m_aInputData[g_Config.m_ClDummy].m_TargetY));
-
-						// Use laser prediction with bounce
-						AimPosition = m_pClient->m_LaserPrediction.PredictLaser(TargetClientId, CurrentAngle, g_Config.m_ZrAimbotFoV);
+						WeaponAimPos = m_pClient->m_LaserPrediction.PredictLaser(TargetClientId, CurrentAngle, *pWeaponConfig->m_pFoV);
 					}
 				}
 				else
 				{
-					// Use regular edge scan for other weapons
-					AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+					WeaponAimPos = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
 				}
+			}
+		}
 
-				// Only set aim position if we found a valid hit
-				if(length(AimPosition) > 0.0f)
+		// Process hook aim
+		if(UseHookAimbot)
+		{
+			int TargetClientId = m_pClient->m_Aimbot.SearchTarget();
+			if(TargetClientId != -1)
+			{
+				HookAimPos = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+				
+				if(length(HookAimPos) == 0.0f)
 				{
-					m_pClient->m_Cheat.SetMousePosition(AimPosition);
+					vec2 LocalPos = m_pClient->m_aClients[m_pClient->m_Snap.m_LocalClientId].m_RenderPos;
+					vec2 PlayerPos = m_pClient->m_aClients[TargetClientId].m_RenderPos;
+					vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
+					vec2 targetVel = m_pClient->m_aClients[TargetClientId].m_Predicted.m_Vel;
+					vec2 predictedPos = PlayerPos;
+					
+					if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
+					{
+						vec2 predictedDir = predictedPos - LocalPos;
+						if(m_pClient->m_HookHitscan.EdgeScan(TargetClientId).x != 0.0f)
+						{
+							HookAimPos = predictedDir;
+						}
+					}
 				}
+			}
+		}
+
+		// Apply weapon aim
+		if(length(WeaponAimPos) > 0.0f)
+		{
+			if(*pWeaponConfig->m_pSilent)
+			{
+				m_aInputData[g_Config.m_ClDummy].m_TargetX = (int)WeaponAimPos.x;
+				m_aInputData[g_Config.m_ClDummy].m_TargetY = (int)WeaponAimPos.y;
+			}
+			else
+			{
+				m_aMousePos[g_Config.m_ClDummy] = WeaponAimPos;
+				ClampMousePos();
+			}
+		}
+
+		// Apply hook aim
+		if(length(HookAimPos) > 0.0f)
+		{
+			if(*pHookConfig->m_pSilent)
+			{
+				m_aInputData[g_Config.m_ClDummy].m_TargetX = (int)HookAimPos.x;
+				m_aInputData[g_Config.m_ClDummy].m_TargetY = (int)HookAimPos.y;
+			}
+			else
+			{
+				m_aMousePos[g_Config.m_ClDummy] = HookAimPos;
+				ClampMousePos();
 			}
 		}
 	}
