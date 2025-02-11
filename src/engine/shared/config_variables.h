@@ -762,3 +762,20 @@ MACRO_CONFIG_INT(ZrAimbotLaserBouncePath, zr_aimbot_laser_bounce_path, 0, 0, 2, 
 
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
 MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 4, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro)")
+
+// Zyro Aimbot weapon config macro
+#define WEAPON_CONFIG(WEAPON) \
+    MACRO_CONFIG_INT(ZrAimbot##WEAPON##Enabled, zr_aimbot_##WEAPON##_enabled, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot enabled"); \
+    MACRO_CONFIG_INT(ZrAimbot##WEAPON##FoV, zr_aimbot_##WEAPON##_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot field of view"); \
+    MACRO_CONFIG_INT(ZrAimbot##WEAPON##Silent, zr_aimbot_##WEAPON##_silent, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot silent mode")
+
+// Apply macro for each weapon
+WEAPON_CONFIG(Hook)
+WEAPON_CONFIG(Hammer)
+WEAPON_CONFIG(Gun)
+WEAPON_CONFIG(Shotgun)
+WEAPON_CONFIG(Grenade)
+WEAPON_CONFIG(Laser)
+WEAPON_CONFIG(Ninja)
+
+#undef WEAPON_CONFIG

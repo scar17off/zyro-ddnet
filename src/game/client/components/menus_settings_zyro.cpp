@@ -2,14 +2,46 @@
 
 #include <game/client/ui.h>
 #include <game/client/ui_scrollregion.h>
+#include <game/client/gameclient.h>
 
 #include "menus.h"
 
 static int s_CurTab = 0;
+static int s_CurAimbotTab = -1;
 enum
 {
     ZYRO_TAB_PAGE_1 = 0,
     NUMBER_OF_ZYRO_TABS
+};
+
+enum
+{
+    WEAPON_TAB_HOOK = 0,
+    WEAPON_TAB_HAMMER,
+    WEAPON_TAB_GUN,
+    WEAPON_TAB_SHOTGUN,
+    WEAPON_TAB_GRENADE,
+    WEAPON_TAB_LASER,
+    WEAPON_TAB_NINJA,
+    NUM_WEAPON_TABS
+};
+
+struct WeaponConfig {
+    int *m_pEnabled;
+    int *m_pAccuracy;
+    int *m_pFoV;
+    int *m_pSilent;
+    const char *m_pName;
+};
+
+static WeaponConfig s_aWeaponConfigs[] = {
+    {&g_Config.m_ZrAimbotHookEnabled, &g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookFoV, &g_Config.m_ZrAimbotHookSilent, "Hook"},
+    {&g_Config.m_ZrAimbotHammerEnabled, nullptr, &g_Config.m_ZrAimbotHammerFoV, &g_Config.m_ZrAimbotHammerSilent, "Hammer"},
+    {&g_Config.m_ZrAimbotGunEnabled, nullptr, &g_Config.m_ZrAimbotGunFoV, &g_Config.m_ZrAimbotGunSilent, "Gun"},
+    {&g_Config.m_ZrAimbotShotgunEnabled, nullptr, &g_Config.m_ZrAimbotShotgunFoV, &g_Config.m_ZrAimbotShotgunSilent, "Shotgun"},
+    {&g_Config.m_ZrAimbotGrenadeEnabled, nullptr, &g_Config.m_ZrAimbotGrenadeFoV, &g_Config.m_ZrAimbotGrenadeSilent, "Grenade"},
+    {&g_Config.m_ZrAimbotLaserEnabled, &g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserFoV, &g_Config.m_ZrAimbotLaserSilent, "Laser"},
+    {&g_Config.m_ZrAimbotNinjaEnabled, nullptr, &g_Config.m_ZrAimbotNinjaFoV, &g_Config.m_ZrAimbotNinjaSilent, "Ninja"}
 };
 
 int CMenus::RenderTablist(CUIRect TabBar)
@@ -47,62 +79,147 @@ int CMenus::RenderTablist(CUIRect TabBar)
 
 void CMenus::RenderTabPage1(CUIRect MainView)
 {
+    // Split MainView to use only 1/4 of width
+    CUIRect SettingsView;
+    MainView.VSplitLeft(MainView.w/4, &SettingsView, nullptr);
+    
     CUIRect Button, Right, Row, Label;
     const float LineSize = 20.0f;
     const float Spacing = 2.0f;
     const float CheckboxWidth = 80.0f;
     const float SliderWidth = 150.0f;
 
-    // Limit the width and height of the menu
-    MainView.VSplitLeft(300.0f, &MainView, nullptr);
-    MainView.HSplitTop(140.0f, &MainView, nullptr);
-
-    // Aimbot settings (Aim, Silent, FOV on same row)
-    MainView.HSplitTop(LineSize, &Row, &MainView);
-    Row.VSplitLeft(CheckboxWidth, &Button, &Right);
-    if(DoButton_CheckBox(&g_Config.m_ZrAimbot, Localize("aim"), g_Config.m_ZrAimbot, &Button))
-        g_Config.m_ZrAimbot ^= 1;
+    // Calculate weapon section height
+    const float MaxWeaponHeight = 96.0f * 0.3f;
+    const float CheckboxSize = 20.0f;
+    const float CheckboxSpacing = 5.0f;
+    const float TotalWeaponSectionHeight = MaxWeaponHeight + CheckboxSize + CheckboxSpacing;
     
-    Right.VSplitLeft(CheckboxWidth, &Button, &Label);
-    if(DoButton_CheckBox(&g_Config.m_ZrAimbotMode, Localize("silent"), g_Config.m_ZrAimbotMode, &Button))
-        g_Config.m_ZrAimbotMode ^= 1;
+    // Create weapons section
+    CUIRect WeaponsSection;
+    SettingsView.HSplitTop(MaxWeaponHeight, &WeaponsSection, &SettingsView);
+    
+    // Calculate weapon widths and spacing
+    const int NumWeapons = 7;
+    float WeaponWidths[7];
+    float TotalWeaponsWidth = 0;
+    const float MinSpacingFactor = 0.2f;
+    
+    for(int i = 0; i < NumWeapons; i++)
+    {
+        float Width;
+        switch(i)
+        {
+            case 0: Width = 128.0f; break; // Hook
+            case 1: Width = 128.0f; break; // Hammer
+            case 2: Width = 128.0f; break; // Gun
+            case 3: Width = 256.0f; break; // Shotgun
+            case 4: Width = 256.0f; break; // Grenade
+            case 5: Width = 224.0f; break; // Laser
+            case 6: Width = 256.0f; break; // Ninja
+        }
+        WeaponWidths[i] = Width * 0.3f;
+        TotalWeaponsWidth += WeaponWidths[i];
+    }
 
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Label, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+    // Calculate minimum spacing based on widest weapon
+    float MaxWeaponWidth = 0;
+    for(int i = 0; i < NumWeapons; i++)
+        MaxWeaponWidth = std::max(MaxWeaponWidth, WeaponWidths[i]);
+    
+    float MinSpacing = MaxWeaponWidth * MinSpacingFactor;
+    float DesiredSpacing = (WeaponsSection.w - TotalWeaponsWidth) / (NumWeapons + 1);
+    float WeaponSpacing = MinSpacing;
+    float CurrentX = WeaponsSection.x;
 
-    // Hook and Laser accuracy on same row
-    MainView.HSplitTop(Spacing, nullptr, &MainView);
-    MainView.HSplitTop(LineSize, &Row, &MainView);
-    Row.VSplitLeft(SliderWidth, &Button, &Right);
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
-    Right.VSplitLeft(5.0f, nullptr, &Right);
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Right, Localize("laser acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+    CUIRect WeaponRect = WeaponsSection;
+    
+    for(int i = 0; i < NumWeapons; i++)
+    {
+        WeaponRect.x = CurrentX;
+        WeaponRect.w = WeaponWidths[i];
+        
+        switch(i)
+        {
+            case 0: RenderWeaponSection(WeaponRect, 6, WEAPON_TAB_HOOK, "Hook"); break;
+            case 1: RenderWeaponSection(WeaponRect, WEAPON_HAMMER, WEAPON_TAB_HAMMER, "Hammer"); break;
+            case 2: RenderWeaponSection(WeaponRect, WEAPON_GUN, WEAPON_TAB_GUN, "Gun"); break;
+            case 3: RenderWeaponSection(WeaponRect, WEAPON_SHOTGUN, WEAPON_TAB_SHOTGUN, "Shotgun"); break;
+            case 4: RenderWeaponSection(WeaponRect, WEAPON_GRENADE, WEAPON_TAB_GRENADE, "Grenade"); break;
+            case 5: RenderWeaponSection(WeaponRect, WEAPON_LASER, WEAPON_TAB_LASER, "Laser"); break;
+            case 6: RenderWeaponSection(WeaponRect, WEAPON_NINJA, WEAPON_TAB_NINJA, "Ninja"); break;
+        }
+        
+        CurrentX += WeaponWidths[i] + WeaponSpacing;
+    }
 
-    // Laser bounce settings
-    MainView.HSplitTop(Spacing, nullptr, &MainView);
-    MainView.HSplitTop(LineSize, &Row, &MainView);
-    Row.VSplitLeft(CheckboxWidth, &Button, &Right);
-    if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
-        g_Config.m_ZrAimbotLaserUseBounce ^= 1;
+    SettingsView.HSplitTop(Spacing * 2, nullptr, &SettingsView);
 
-    Right.VSplitLeft(CheckboxWidth, &Button, &Label);
-    if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
-        g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
+    // Show weapon-specific settings when a weapon is selected
+    if(s_CurAimbotTab != -1)
+    {
+        WeaponConfig *pConfig = &s_aWeaponConfigs[s_CurAimbotTab];
+        
+        // Aim + Silent + FOV controls on one row
+        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+        
+        // Aim checkbox (enables aimbot for this weapon)
+        Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+        if(DoButton_CheckBox(pConfig->m_pEnabled, Localize("aim"), *pConfig->m_pEnabled, &Button))
+            *pConfig->m_pEnabled ^= 1;
 
-    // Bounce count and path selection on same row
-    MainView.HSplitTop(Spacing, nullptr, &MainView);
-    MainView.HSplitTop(LineSize, &Row, &MainView);
-    Row.VSplitLeft(SliderWidth, &Button, &Right);
-    Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button, Localize("count"), 1, 10, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
-    Right.VSplitLeft(5.0f, nullptr, &Right);
-    const char *apBouncePaths[] = {"closest", "furthest", "random"};
-    static CUi::SDropDownState s_BouncePathDropDownState;
-    static CScrollRegion s_BouncePathDropDownScrollRegion;
-    s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
-    g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Right, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
+        // Silent checkbox
+        Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+        if(DoButton_CheckBox(pConfig->m_pSilent, Localize("silent"), *pConfig->m_pSilent && *pConfig->m_pEnabled, &Button))
+            *pConfig->m_pSilent ^= 1;
+
+        // FOV slider
+        Right.VSplitLeft(5.0f, nullptr, &Right); // Add some spacing
+        Right.VSplitLeft(SliderWidth, &Button, &Right);
+        Ui()->DoScrollbarOption(pConfig->m_pFoV, pConfig->m_pFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+    }
+
+    // Hook accuracy - only show when hook is selected
+    if(s_CurAimbotTab == WEAPON_TAB_HOOK)
+    {
+        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+        Row.VSplitLeft(SliderWidth, &Button, &Right);
+        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+        Right.VSplitLeft(5.0f, nullptr, &Right);
+    }
+
+    // Laser settings - only show when laser is selected
+    if(s_CurAimbotTab == WEAPON_TAB_LASER)
+    {
+        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+        Row.VSplitLeft(SliderWidth, &Button, &Right);
+        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Button, Localize("laser acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+
+        // Laser bounce settings
+        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+        Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+        if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
+            g_Config.m_ZrAimbotLaserUseBounce ^= 1;
+
+        // Bounce count and path selection on same row
+        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+        Row.VSplitLeft(SliderWidth, &Button, &Right);
+        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button, Localize("count"), 1, 10, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+        Right.VSplitLeft(5.0f, nullptr, &Right);
+        const char *apBouncePaths[] = {"closest", "furthest", "random"};
+        static CUi::SDropDownState s_BouncePathDropDownState;
+        static CScrollRegion s_BouncePathDropDownScrollRegion;
+        s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
+        g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Right, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
+    }
 
     // Discord settings (RPC checkbox and dropdown on same row)
-    MainView.HSplitTop(Spacing * 2, nullptr, &MainView);
-    MainView.HSplitTop(LineSize, &Row, &MainView);
+    SettingsView.HSplitTop(Spacing * 2, nullptr, &SettingsView);
+    SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
     Row.VSplitLeft(CheckboxWidth, &Button, &Right);
     if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
         g_Config.m_ZrDiscordRPC ^= 1;
@@ -112,6 +229,158 @@ void CMenus::RenderTabPage1(CUIRect MainView)
     static CScrollRegion s_DiscordDropDownScrollRegion;
     s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
     g_Config.m_ZrDiscord = Ui()->DoDropDown(&Right, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
+}
+
+void CMenus::RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabId, const char* Label)
+{
+    float WeaponWidth, WeaponHeight;
+    
+    // Set proper weapon sizes with correct proportions
+    // These are the original sizes of the weapons taken from https://teedata.net/template/gameskin_clear
+    switch(WeaponId)
+    {
+        case 6: // Hook
+            WeaponWidth = 128.0f;
+            WeaponHeight = 32.0f;
+            break;
+        case WEAPON_HAMMER:
+            WeaponWidth = 128.0f;
+            WeaponHeight = 96.0f;
+            break;
+        case WEAPON_GUN:
+            WeaponWidth = 128.0f;
+            WeaponHeight = 64.0f;
+            break;
+        case WEAPON_SHOTGUN:
+            WeaponWidth = 256.0f;
+            WeaponHeight = 64.0f;
+            break;
+        case WEAPON_GRENADE:
+            WeaponWidth = 256.0f;
+            WeaponHeight = 64.0f;
+            break;
+        case WEAPON_LASER:
+            WeaponWidth = 224.0f;
+            WeaponHeight = 96.0f;
+            break;
+        case WEAPON_NINJA:
+            WeaponWidth = 256.0f;
+            WeaponHeight = 64.0f;
+            break;
+    }
+
+    // Scale down weapons to fit
+    const float ScaleFactor = 0.3f;
+    WeaponWidth *= ScaleFactor;
+    WeaponHeight *= ScaleFactor;
+    
+    CUIRect WeaponRect, HighlightRect;
+    static CButtonContainer s_aWeaponButtons[7] = {};
+
+    // Create weapon rect with proper dimensions (1000iq code)
+    WeaponRect = WeaponsSection;
+    WeaponRect.w = WeaponWidth;
+    WeaponRect.x = WeaponsSection.x;
+    WeaponRect.y += (96.0f * 0.3f - WeaponHeight) / 2;
+    WeaponRect.h = WeaponHeight;
+
+    HighlightRect = WeaponRect;
+
+    if(s_CurAimbotTab == TabId)
+        HighlightRect.Draw(ColorRGBA(1,1,1,0.25f), IGraphics::CORNER_ALL, 5.0f);
+
+    // Render weapon
+    DoWeaponPreview(&WeaponRect, WeaponId);
+
+    // Make entire section clickable using button logic
+    if(Ui()->DoButtonLogic(&s_aWeaponButtons[TabId], s_CurAimbotTab == TabId, &WeaponsSection))
+    {
+        if(s_CurAimbotTab == TabId)
+            s_CurAimbotTab = -1;
+        else
+            s_CurAimbotTab = TabId;
+    }
+}
+
+void CMenus::DoWeaponPreview(const CUIRect *pRect, int WeaponID) 
+{
+    float Width = pRect->w;
+    float Height = pRect->h;
+    float x = pRect->x + Width/2;
+    float y = pRect->y + Height/2;
+
+    if(WeaponID == 6) // Hook
+    {
+        // this rendering code was stolen from players.cpp
+        // Draw hook chain first
+        Graphics()->TextureSet(GameClient()->m_GameSkin.m_SpriteHookChain);
+        Graphics()->QuadsBegin();
+        Graphics()->QuadsSetSubset(0, 0, 1, 1);
+        Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+        
+        // Chain segments - render multiple small segments for better look
+        const float ChainWidth = Width * 0.1f; // Thinner chain
+        const float ChainLength = Width * 0.6f; // Total chain length
+        const int NumSegments = 3;
+        const float SegmentLength = ChainLength / NumSegments;
+        
+        for(int i = 0; i < NumSegments; i++)
+        {
+            float SegX = x - ChainLength/2 + i * SegmentLength;
+            IGraphics::CQuadItem QuadItem(SegX, y - ChainWidth/2, SegmentLength, ChainWidth);
+            Graphics()->QuadsDrawTL(&QuadItem, 1);
+        }
+        Graphics()->QuadsEnd();
+
+        // Draw hook head
+        Graphics()->TextureSet(GameClient()->m_GameSkin.m_SpriteHookHead);
+        Graphics()->QuadsBegin();
+        Graphics()->QuadsSetSubset(0, 0, 1, 1);
+        Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+        
+        // Head at the end of chain
+        float HeadSize = Width * 0.25f;
+        IGraphics::CQuadItem QuadItem(x + ChainLength/2 - HeadSize/2, y - HeadSize/2, HeadSize, HeadSize);
+        Graphics()->QuadsDrawTL(&QuadItem, 1);
+        Graphics()->QuadsEnd();
+        return;
+    }
+
+    // Regular weapon rendering
+    IGraphics::CTextureHandle WeaponTexture;
+    
+    switch(WeaponID)
+    {
+        case WEAPON_HAMMER:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponHammer;
+            break;
+        case WEAPON_GUN:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponGun;
+            break;
+        case WEAPON_SHOTGUN:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponShotgun;
+            break;
+        case WEAPON_GRENADE:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponGrenade;
+            break;
+        case WEAPON_LASER:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponLaser;
+            break;
+        case WEAPON_NINJA:
+            WeaponTexture = m_pClient->m_GameSkin.m_SpriteWeaponNinja;
+            break;
+        default:
+            return;
+    }
+
+    Graphics()->TextureSet(WeaponTexture);
+    Graphics()->QuadsBegin();
+    Graphics()->QuadsSetSubset(0, 0, 1, 1);
+    Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+    
+    IGraphics::CQuadItem QuadItem(x - Width/2, y - Height/2, Width, Height);
+    Graphics()->QuadsDrawTL(&QuadItem, 1);
+    Graphics()->QuadsEnd();
 }
 
 void CMenus::RenderSettingsZyro(CUIRect MainView)

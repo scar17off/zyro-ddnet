@@ -603,7 +603,6 @@ protected:
 	void RenderThemeSelection(CUIRect MainView);
 	void RenderSettingsGeneral(CUIRect MainView);
 	void RenderSettingsPlayer(CUIRect MainView);
-	void RenderSettingsDummyPlayer(CUIRect MainView);
 	void RenderSettingsTee(CUIRect MainView);
 	void RenderSettingsTee7(CUIRect MainView);
 	void RenderSettingsTeeCustom7(CUIRect MainView);
@@ -620,6 +619,9 @@ protected:
 	int RenderTablist(CUIRect TabBar);
 	void RenderTabPage1(CUIRect MainView);
 	void RenderSettingsZyro(CUIRect MainView);
+	// Weapon rendering
+	void RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabId, const char* Label);
+	void DoWeaponPreview(const CUIRect *pRect, int WeaponID);
 
 	class CMapListItem
 	{
