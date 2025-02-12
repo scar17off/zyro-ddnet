@@ -2347,6 +2347,8 @@ if(CLIENT)
     components/cheat/prediction/laser_prediction.h
     components/cheat/visuals.cpp
     components/cheat/visuals.h
+    components/cheat/visuals/spectatorlist.cpp
+    components/cheat/visuals/spectatorlist.h
     components/console.cpp
     components/console.h
     components/controls.cpp

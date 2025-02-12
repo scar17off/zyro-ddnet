@@ -58,6 +58,7 @@
 
 #include "components/cheat/cheat.h"
 #include "components/cheat/visuals.h"
+#include "components/cheat/visuals/spectatorlist.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
@@ -147,12 +148,18 @@ void CGameClient::OnConsoleInit()
 					      &m_Particles.m_RenderGeneral,
 					      &m_FreezeBars,
 					      &m_DamageInd,
+
 						  &m_Cheat,
+						  
 						  &m_Visuals,
+						  &m_SpectatorList,
+
 						  &m_Aimbot,
+
 						  &m_HookPrediction,
 						  &m_HookHitscan,
 						  &m_LaserPrediction,
+
 					      &m_Hud,
 					      &m_Spectator,
 					      &m_Emoticon,

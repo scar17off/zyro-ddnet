@@ -223,7 +223,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		}
 	}
 
-	// Visual settings (plr box and plr tracer on same row)
+	// Visual settings (plr box and plr tracer and spec list on same row)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
@@ -233,6 +233,10 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrPlrTracer, Localize("plr tracer"), g_Config.m_ZrPlrTracer, &Button))
 		g_Config.m_ZrPlrTracer ^= 1;
+
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrSpecList, Localize("spec list"), g_Config.m_ZrSpecList, &Button))
+		g_Config.m_ZrSpecList ^= 1;
 
 	// Discord settings (RPC checkbox and dropdown on same row)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
