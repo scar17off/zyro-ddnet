@@ -1,3 +1,2 @@
-other/*/include/* linguist-vendored
-src/engine/external/* linguist-vendored
 * linguist-vendored=true
+src/game/client/components/cheat/* linguist-vendored=false
