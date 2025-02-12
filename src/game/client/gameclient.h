@@ -40,6 +40,7 @@
 #include "components/ghost.h"
 
 #include "components/cheat/cheat.h"
+#include "components/cheat/visuals.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
@@ -147,6 +148,7 @@ public:
 	CFlow m_Flow;
 
 	CCheat m_Cheat;
+	CVisuals m_Visuals;
 	CAimbot m_Aimbot;
 	CHookPrediction m_HookPrediction;
 	CHookHitscan m_HookHitscan;

@@ -24,6 +24,9 @@ float CAimbot::GetWeaponReach(int Weapon)
 
 int CAimbot::SearchTarget()
 {
+    if(!m_pClient->m_Snap.m_pLocalCharacter)
+        return -1;
+
     int NearestPlayer = -1;
     float NearestDistance = 9999.0f;
 
@@ -89,6 +92,9 @@ bool CAimbot::InFoV(vec2 Position, int Weapon)
 
 void CAimbot::OnRender()
 {
+    if(!g_Config.m_ZrAimbotDrawFov)
+        return;
+
     if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
         return;
     
@@ -105,12 +111,8 @@ void CAimbot::OnRender()
     
     vec2 Direction = normalize(m_pClient->m_Controls.m_aMousePos[g_Config.m_ClDummy]);
     float BaseAngle = angle(Direction);
-    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f; // Use global FOV
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f;
 
-    Graphics()->TextureClear();
-    Graphics()->LinesBegin();
-    Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.3f);
-    
     // Draw FOV lines
     vec2 Dir1 = direction(BaseAngle - FovRadians/2);
     vec2 Dir2 = direction(BaseAngle + FovRadians/2);
@@ -118,13 +120,22 @@ void CAimbot::OnRender()
     vec2 FovPos1 = InitPos + Dir1 * WeaponReach;
     vec2 FovPos2 = InitPos + Dir2 * WeaponReach;
     
-    Graphics()->LinesDraw(&IGraphics::CLineItem(InitPos.x, InitPos.y, FovPos1.x, FovPos1.y), 1);
-    Graphics()->LinesDraw(&IGraphics::CLineItem(InitPos.x, InitPos.y, FovPos2.x, FovPos2.y), 1);
+    m_pClient->m_Visuals.DrawLine(
+        InitPos.x, InitPos.y,        // from
+        FovPos1.x, FovPos1.y,        // to
+        g_Config.m_ZrAimbotFovWidth, // width
+        ColorRGBA(1,1,1,0.3f)        // color
+    );
     
-    Graphics()->LinesEnd();
+    m_pClient->m_Visuals.DrawLine(
+        InitPos.x, InitPos.y,        // from
+        FovPos2.x, FovPos2.y,        // to
+        g_Config.m_ZrAimbotFovWidth, // width
+        ColorRGBA(1,1,1,0.3f)        // color
+    );
 }
 
-const WeaponConfig* CAimbot::GetWeaponConfig(int Weapon) const 
+const WeaponConfig* CAimbot::GetWeaponConfig(int Weapon) const
 {
     static WeaponConfig s_aWeaponConfigs[] = {
         {&g_Config.m_ZrAimbotHammerEnabled, "Hammer"},

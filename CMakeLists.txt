@@ -2345,6 +2345,8 @@ if(CLIENT)
     components/cheat/prediction/hook_prediction.h
     components/cheat/prediction/laser_prediction.cpp
     components/cheat/prediction/laser_prediction.h
+    components/cheat/visuals.cpp
+    components/cheat/visuals.h
     components/console.cpp
     components/console.h
     components/controls.cpp

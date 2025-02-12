@@ -325,72 +325,68 @@ int CControls::SnapInput(int *pData)
 		// Only proceed if weapon/hook has aimbot enabled
 		if(pConfig && *pConfig->m_pEnabled)
 		{
+			// Always search for target
+			int Target = m_pClient->m_Aimbot.SearchTarget();
+			
+			// Only aim if we need to
 			bool IsAutoWeapon = (CurrentWeapon == WEAPON_GRENADE || CurrentWeapon == WEAPON_LASER || CurrentWeapon == WEAPON_SHOTGUN);
-
-			// Trigger aimbot on:
-			// - Hook press (not continuous hooking)
-			// - Initial fire press for non-auto weapons
-			// - Continuous fire for auto weapons
-			if(HookPressed || 
-			   (FirePressed && !IsHooking && !IsAutoWeapon) || 
-			   (IsFiring && !IsHooking && IsAutoWeapon))
+			if(Target != -1 && (
+				HookPressed || 
+				(FirePressed && !IsHooking && !IsAutoWeapon) || 
+				(IsFiring && !IsHooking && IsAutoWeapon)))
 			{
-				int TargetClientId = m_pClient->m_Aimbot.SearchTarget();
-				if(TargetClientId != -1)
+				int LocalClientId = m_pClient->m_Snap.m_LocalClientId;
+				vec2 LocalPos = m_pClient->m_aClients[LocalClientId].m_RenderPos;
+				vec2 PlayerPos = m_pClient->m_aClients[Target].m_RenderPos;
+				vec2 AimPosition(0, 0);
+
+				// Get aim position based on weapon type
+				if(IsHooking || HookPressed)
 				{
-					int LocalClientId = m_pClient->m_Snap.m_LocalClientId;
-					vec2 LocalPos = m_pClient->m_aClients[LocalClientId].m_RenderPos;
-					vec2 PlayerPos = m_pClient->m_aClients[TargetClientId].m_RenderPos;
-					vec2 AimPosition(0, 0);
-
-					// Get aim position based on weapon type
-					if(IsHooking || HookPressed)
+					// Try edge scan first for hook
+					AimPosition = m_pClient->m_HookHitscan.EdgeScan(Target);
+					
+					// If edge scan fails, try prediction as fallback
+					if(length(AimPosition) == 0.0f)
 					{
-						// Try edge scan first for hook
-						AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+						vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
+						vec2 targetVel = m_pClient->m_aClients[Target].m_Predicted.m_Vel;
+						vec2 predictedPos = PlayerPos;
 						
-						// If edge scan fails, try prediction as fallback
-						if(length(AimPosition) == 0.0f)
+						if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
 						{
-							vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
-							vec2 targetVel = m_pClient->m_aClients[TargetClientId].m_Predicted.m_Vel;
-							vec2 predictedPos = PlayerPos;
-							
-							if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
-							{
-								AimPosition = predictedPos - LocalPos;
-							}
+							AimPosition = predictedPos - LocalPos;
 						}
 					}
-					else if(CurrentWeapon == WEAPON_LASER)
+				}
+				else if(CurrentWeapon == WEAPON_LASER)
+				{
+					// First try direct shot with edge scan
+					if(!g_Config.m_ZrAimbotLaserBounceOnly)
 					{
-						// First try direct shot with edge scan
-						if(!g_Config.m_ZrAimbotLaserBounceOnly)
-						{
-							AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
-						}
-
-						// If direct shot failed and bounce is enabled, try bounce
-						if(g_Config.m_ZrAimbotLaserUseBounce && (length(AimPosition) == 0.0f || g_Config.m_ZrAimbotLaserBounceOnly))
-						{
-							// Get current aim angle and FOV
-							float CurrentAngle = angle(vec2(m_aInputData[g_Config.m_ClDummy].m_TargetX, m_aInputData[g_Config.m_ClDummy].m_TargetY));
-
-							// Use laser prediction with bounce
-							AimPosition = m_pClient->m_LaserPrediction.PredictLaser(TargetClientId, CurrentAngle, g_Config.m_ZrAimbotFoV);
-						}
-					}
-					else
-					{
-						// Use regular edge scan for other weapons
-						AimPosition = m_pClient->m_HookHitscan.EdgeScan(TargetClientId);
+						AimPosition = m_pClient->m_HookHitscan.EdgeScan(Target);
 					}
 
-					// Only set aim position if we found a valid hit
-					if(length(AimPosition) > 0.0f)
+					// If direct shot failed and bounce is enabled, try bounce
+					if(g_Config.m_ZrAimbotLaserUseBounce && (length(AimPosition) == 0.0f || g_Config.m_ZrAimbotLaserBounceOnly))
 					{
-						m_pClient->m_Cheat.SetMousePosition(AimPosition);
+						// Get current aim angle and FOV
+						float CurrentAngle = angle(vec2(m_aInputData[g_Config.m_ClDummy].m_TargetX, m_aInputData[g_Config.m_ClDummy].m_TargetY));
+
+						// Use laser prediction with bounce
+						AimPosition = m_pClient->m_LaserPrediction.PredictLaser(Target, CurrentAngle, g_Config.m_ZrAimbotFoV);
 					}
+				}
+				else
+				{
+					// Use regular edge scan for other weapons
+					AimPosition = m_pClient->m_HookHitscan.EdgeScan(Target);
+				}
+
+				// Only set aim position if we found a valid hit
+				if(length(AimPosition) > 0.0f)
+				{
+					m_pClient->m_Cheat.SetMousePosition(AimPosition);
 				}
 			}
 		}

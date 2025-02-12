@@ -57,6 +57,7 @@
 #include "components/ghost.h"
 
 #include "components/cheat/cheat.h"
+#include "components/cheat/visuals.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
@@ -147,6 +148,7 @@ void CGameClient::OnConsoleInit()
 					      &m_FreezeBars,
 					      &m_DamageInd,
 						  &m_Cheat,
+						  &m_Visuals,
 						  &m_Aimbot,
 						  &m_HookPrediction,
 						  &m_HookHitscan,
