@@ -68,7 +68,7 @@ void CSpectatorList::DrawPausedIcon(float X, float Y, float Size, const ColorRGB
 void CSpectatorList::OnRender()
 {
     if(!g_Config.m_ZrSpecList)
-        return;
+        return; 
 
     // Save current screen mapping
     float Points[4];

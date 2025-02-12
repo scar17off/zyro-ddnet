@@ -246,7 +246,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		g_Config.m_ZrDiscordRPC ^= 1;
 
 	Right.VSplitLeft(80.0f, &Button, &Right);
-	const char *apDiscordApps[] = {"ddnet", "tater", "cff", "krx", "zyro"};
+	const char *apDiscordApps[] = {"zyro", "krx", "cff", "ddnet", "tater", "cactus", "aiodob"};
 	static CUi::SDropDownState s_DiscordDropDownState;
 	static CScrollRegion s_DiscordDropDownScrollRegion;
 	s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
