@@ -35,12 +35,12 @@ struct DiscordApp {
 
 static const std::map<int, DiscordApp> DISCORD_APPS = {
 	// { Id, { ClientId, OnlineDetails, OfflineDetails, LargeImage, LargeText } }
-	{0, {1337554226926321745, "Online", "Offline", "zyro_logo", "Zyro logo"}}, // Zyro
-	{1, {1326161704043679845, "Online", "Offline", "ddnet_logo", "DDNet logo"}}, // KRX
-	{2, {1121238977228328970, "Online", "Offline", "cff_logo", "CFF logo"}}, // CFF
-	{3, {752165779117441075, "Online", "Offline", "ddnet_logo", "DDNet logo"}}, // DDNet
-	{4, {1325361453988970527, "In-Game", "In-Menus", "tclient", "TClient"}}, // Tater
-	{5, {1142757199249162321, "В игре", "В меню", "ddnet_logo", "DDNet logo"}}, // Cactus
+	{0, {1337554226926321745, "Online", "Offline", "zyro_logo", "Zyro logo"}},                                    // Zyro
+	{1, {1326161704043679845, "Online", "Offline", "ddnet_logo", "DDNet logo"}},                                  // KRX
+	{2, {1121238977228328970, "Online", "Offline", "cff_logo", "CFF logo"}},                                      // CFF
+	{3, {752165779117441075, "Online", "Offline", "ddnet_logo", "DDNet logo"}},                                   // DDNet
+	{4, {1325361453988970527, "In-Game", "In-Menus", "tclient", "TClient"}},                                      // Tater
+	{5, {1142757199249162321, "В игре", "В меню", "ddnet_logo", "DDNet logo"}},                                   // Cactus
 	{6, {1325507236331524116, "Prochiral-Gay", "Offline", "ac_image_b", "github.com/qxdFox/Aiodob-Client-DDNet"}} // Aiodob Client
 };
 
