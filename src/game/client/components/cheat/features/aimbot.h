@@ -5,8 +5,6 @@
 
 struct WeaponConfig {
     int *m_pEnabled;
-    int *m_pFoV;
-    int *m_pSilent;
     const char *m_pName;
 };
 

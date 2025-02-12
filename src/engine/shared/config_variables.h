@@ -747,14 +747,16 @@ MACRO_CONFIG_INT(ClVideoRecorderFPS, cl_video_recorder_fps, 60, 1, 1000, CFGFLAG
  * Add config variables for mods below this comment to avoid merge conflicts.
  */
 
-MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot enabled")
-MACRO_CONFIG_INT(ZrAimbotHookAccuracy, zr_aimbot_hook_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot hook accuracy")
-MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=Plain, 1=Silent)")
-MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot field of view")
+MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot enabled")
+MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=plain, 1=silent)")
+MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot field of view")
+
+// Weapon-specific accuracy settings
+MACRO_CONFIG_INT(ZrAimbotHookAccuracy, zr_aimbot_hook_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Hook aimbot accuracy")
+MACRO_CONFIG_INT(ZrAimbotLaserAccuracy, zr_aimbot_laser_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Laser aimbot accuracy")
 
 // Laser
 MACRO_CONFIG_INT(ZrAimbotLaserPredict, zr_aimbot_laser_predict, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser predict")
-MACRO_CONFIG_INT(ZrAimbotLaserAccuracy, zr_aimbot_laser_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser accuracy")
 MACRO_CONFIG_INT(ZrAimbotLaserBounceOnly, zr_aimbot_laser_bounce_only, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce only")
 MACRO_CONFIG_INT(ZrAimbotLaserUseBounce, zr_aimbot_laser_use_bounce, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser use bounce")
 MACRO_CONFIG_INT(ZrAimbotLaserBounceCount, zr_aimbot_laser_bounce_count, 1, 1, 10, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce count")
@@ -763,11 +765,9 @@ MACRO_CONFIG_INT(ZrAimbotLaserBouncePath, zr_aimbot_laser_bounce_path, 0, 0, 2, 
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
 MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 4, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro)")
 
-// Zyro Aimbot weapon config macro
+// Weapon enable/disable config
 #define WEAPON_CONFIG(WEAPON) \
-    MACRO_CONFIG_INT(ZrAimbot##WEAPON##Enabled, zr_aimbot_##WEAPON##_enabled, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot enabled"); \
-    MACRO_CONFIG_INT(ZrAimbot##WEAPON##FoV, zr_aimbot_##WEAPON##_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot field of view"); \
-    MACRO_CONFIG_INT(ZrAimbot##WEAPON##Silent, zr_aimbot_##WEAPON##_silent, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot silent mode")
+    MACRO_CONFIG_INT(ZrAimbot##WEAPON##Enabled, zr_aimbot_##WEAPON##_enabled, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, #WEAPON " aimbot enabled")
 
 // Apply macro for each weapon
 WEAPON_CONFIG(Hook)

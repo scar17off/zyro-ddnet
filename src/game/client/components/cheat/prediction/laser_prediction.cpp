@@ -72,7 +72,7 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
     const CNetObj_Character *pTargetChar = &m_pClient->m_Snap.m_aCharacters[TargetID].m_Cur;
     if(!pTargetChar)
         return false;
-        
+    
     // Initialize core with target data
     tempCore.Read(pTargetChar);
     

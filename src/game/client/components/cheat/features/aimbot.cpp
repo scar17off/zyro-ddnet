@@ -55,23 +55,10 @@ int CAimbot::SearchTarget()
 
 bool CAimbot::InFoV(vec2 Position, int Weapon)
 {
-    const WeaponConfig* pConfig;
-    bool IsHooking = (m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_Hook != 0);
-    bool IsFiring = (m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_Fire & 1);
+    const WeaponConfig* pConfig = GetWeaponConfig(Weapon);
 
-    if(IsHooking && !IsFiring)
-    {
-        pConfig = GetWeaponConfig(-1); // Hook config
-        if(!pConfig || !*pConfig->m_pEnabled)
-            pConfig = GetWeaponConfig(Weapon);
-    }
-    else
-    {
-        pConfig = GetWeaponConfig(Weapon);
-    }
-
-    // Convert FOV from degrees to radians
-    float FovRadians = (*pConfig->m_pFoV * pi) / 180.0f;
+    // Convert FOV from degrees to radians (now using global FOV)
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f;
     
     // Get current aim direction
     vec2 CurrentAim = normalize(vec2(
@@ -112,33 +99,13 @@ void CAimbot::OnRender()
     int CurrentWeapon = m_pClient->m_Snap.m_pLocalCharacter->m_Weapon;
     float WeaponReach = GetWeaponReach(CurrentWeapon);
     
-    // Get the appropriate config based on action priority
-    const WeaponConfig* pConfig;
-    bool IsHooking = (m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_Hook != 0);
-    bool IsFiring = (m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_Fire & 1);
-
-    if(IsHooking && !IsFiring)
-    {
-        // Check hook config first
-        pConfig = GetWeaponConfig(-1);
-        if(!pConfig || !*pConfig->m_pEnabled)
-        {
-            // Fallback to weapon config if hook aimbot is disabled
-            pConfig = GetWeaponConfig(CurrentWeapon);
-        }
-    }
-    else
-    {
-        // Use weapon config when firing or not hooking
-        pConfig = GetWeaponConfig(CurrentWeapon);
-    }
-
+    const WeaponConfig* pConfig = GetWeaponConfig(CurrentWeapon);
     if(!pConfig || !*pConfig->m_pEnabled)
         return;
     
     vec2 Direction = normalize(m_pClient->m_Controls.m_aMousePos[g_Config.m_ClDummy]);
     float BaseAngle = angle(Direction);
-    float FovRadians = (*pConfig->m_pFoV * pi) / 180.0f;
+    float FovRadians = (g_Config.m_ZrAimbotFoV * pi) / 180.0f; // Use global FOV
 
     Graphics()->TextureClear();
     Graphics()->LinesBegin();
@@ -160,23 +127,23 @@ void CAimbot::OnRender()
 const WeaponConfig* CAimbot::GetWeaponConfig(int Weapon) const 
 {
     static WeaponConfig s_aWeaponConfigs[] = {
-        {&g_Config.m_ZrAimbotHookEnabled, &g_Config.m_ZrAimbotHookFoV, &g_Config.m_ZrAimbotHookSilent, "Hook"},
-        {&g_Config.m_ZrAimbotHammerEnabled, &g_Config.m_ZrAimbotHammerFoV, &g_Config.m_ZrAimbotHammerSilent, "Hammer"},
-        {&g_Config.m_ZrAimbotGunEnabled, &g_Config.m_ZrAimbotGunFoV, &g_Config.m_ZrAimbotGunSilent, "Gun"},
-        {&g_Config.m_ZrAimbotShotgunEnabled, &g_Config.m_ZrAimbotShotgunFoV, &g_Config.m_ZrAimbotShotgunSilent, "Shotgun"},
-        {&g_Config.m_ZrAimbotGrenadeEnabled, &g_Config.m_ZrAimbotGrenadeFoV, &g_Config.m_ZrAimbotGrenadeSilent, "Grenade"},
-        {&g_Config.m_ZrAimbotLaserEnabled, &g_Config.m_ZrAimbotLaserFoV, &g_Config.m_ZrAimbotLaserSilent, "Laser"},
-        {&g_Config.m_ZrAimbotNinjaEnabled, &g_Config.m_ZrAimbotNinjaFoV, &g_Config.m_ZrAimbotNinjaSilent, "Ninja"}
+        {&g_Config.m_ZrAimbotHammerEnabled, "Hammer"},
+        {&g_Config.m_ZrAimbotGunEnabled, "Gun"},
+        {&g_Config.m_ZrAimbotShotgunEnabled, "Shotgun"},
+        {&g_Config.m_ZrAimbotGrenadeEnabled, "Grenade"},
+        {&g_Config.m_ZrAimbotLaserEnabled, "Laser"},
+        {&g_Config.m_ZrAimbotNinjaEnabled, "Ninja"},
+        {&g_Config.m_ZrAimbotHookEnabled, "Hook"}
     };
 
     switch(Weapon)
     {
-        case WEAPON_HAMMER: return &s_aWeaponConfigs[1];
-        case WEAPON_GUN: return &s_aWeaponConfigs[2];
-        case WEAPON_SHOTGUN: return &s_aWeaponConfigs[3];
-        case WEAPON_GRENADE: return &s_aWeaponConfigs[4];
-        case WEAPON_LASER: return &s_aWeaponConfigs[5];
-        case WEAPON_NINJA: return &s_aWeaponConfigs[6];
-        default: return &s_aWeaponConfigs[0]; // Hook
+        case WEAPON_HAMMER: return &s_aWeaponConfigs[0];
+        case WEAPON_GUN: return &s_aWeaponConfigs[1];
+        case WEAPON_SHOTGUN: return &s_aWeaponConfigs[2];
+        case WEAPON_GRENADE: return &s_aWeaponConfigs[3];
+        case WEAPON_LASER: return &s_aWeaponConfigs[4];
+        case WEAPON_NINJA: return &s_aWeaponConfigs[5];
+        default: return &s_aWeaponConfigs[6]; // Hook
     }
 }

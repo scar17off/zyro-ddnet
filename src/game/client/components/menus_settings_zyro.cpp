@@ -17,13 +17,13 @@ enum
 
 enum
 {
-    WEAPON_TAB_HOOK = 0,
-    WEAPON_TAB_HAMMER,
+    WEAPON_TAB_HAMMER = 0,
     WEAPON_TAB_GUN,
     WEAPON_TAB_SHOTGUN,
     WEAPON_TAB_GRENADE,
     WEAPON_TAB_LASER,
     WEAPON_TAB_NINJA,
+    WEAPON_TAB_HOOK,
     NUM_WEAPON_TABS
 };
 
@@ -141,22 +141,10 @@ void CMenus::RenderTabPage1(CUIRect MainView)
     // Show weapon-specific settings when a weapon is selected
     if(s_CurAimbotTab != -1)
     {
-        // Convert menu tab index to weapon ID for GetWeaponConfig
-        int WeaponId;
-        switch(s_CurAimbotTab)
-        {
-            case WEAPON_TAB_HAMMER: WeaponId = WEAPON_HAMMER; break;
-            case WEAPON_TAB_GUN: WeaponId = WEAPON_GUN; break;
-            case WEAPON_TAB_SHOTGUN: WeaponId = WEAPON_SHOTGUN; break;
-            case WEAPON_TAB_GRENADE: WeaponId = WEAPON_GRENADE; break;
-            case WEAPON_TAB_LASER: WeaponId = WEAPON_LASER; break;
-            case WEAPON_TAB_NINJA: WeaponId = WEAPON_NINJA; break;
-            default: WeaponId = -1; break; // Hook
-        }
-
+        int WeaponId = s_CurAimbotTab;
         const WeaponConfig *pConfig = m_pClient->m_Aimbot.GetWeaponConfig(WeaponId);
         
-        // Aim + Silent + FOV controls on one row
+        // Create row for aim checkbox
         SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
         
         // Aim checkbox (enables aimbot for this weapon)
@@ -164,71 +152,67 @@ void CMenus::RenderTabPage1(CUIRect MainView)
         if(DoButton_CheckBox(pConfig->m_pEnabled, Localize("aim"), *pConfig->m_pEnabled, &Button))
             *pConfig->m_pEnabled ^= 1;
 
-        // Silent checkbox
-        Right.VSplitLeft(CheckboxWidth, &Button, &Right);
-        if(DoButton_CheckBox(pConfig->m_pSilent, Localize("silent"), *pConfig->m_pSilent, &Button))
-            *pConfig->m_pSilent ^= 1;
-
-        // FOV slider
-        Right.VSplitLeft(5.0f, nullptr, &Right); // Add some spacing
-        Right.VSplitLeft(SliderWidth, &Button, &Right);
-        Ui()->DoScrollbarOption(pConfig->m_pFoV, pConfig->m_pFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
-    }
-
-    // Hook accuracy - only show when hook is selected
-    if(s_CurAimbotTab == WEAPON_TAB_HOOK)
-    {
-        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
-        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-        Row.VSplitLeft(SliderWidth, &Button, &Right);
-        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, Localize("hook acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+        // Global FOV slider
         Right.VSplitLeft(5.0f, nullptr, &Right);
-    }
+        Right.VSplitLeft(SliderWidth, &Button, &Right);
+        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
 
-    // Laser settings - only show when laser is selected
-    if(s_CurAimbotTab == WEAPON_TAB_LASER)
-    {
-        // Laser accuracy slider
-        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
-        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-        Row.VSplitLeft(SliderWidth, &Button, &Right);
-        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Button, Localize("laser acc"), 1, 200, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+        // Aimbot mode dropdown
+        Right.VSplitLeft(20.0f, nullptr, &Right); // Add spacing between slider and dropdown
+        Right.VSplitLeft(120.0f, &Button, &Right); // Fixed width for dropdown
+        const char *apAimbotModes[] = {"Plain", "Silent"};
+        static CUi::SDropDownState s_AimbotModeDropDownState;
+        static CScrollRegion s_AimbotModeDropDownScrollRegion;
+        s_AimbotModeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_AimbotModeDropDownScrollRegion;
+        g_Config.m_ZrAimbotMode = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotMode, apAimbotModes, std::size(apAimbotModes), s_AimbotModeDropDownState);
 
-        // Bounce settings all on one row
-        SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
-        SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-        
-        // Calculate widths for each control
-        const float BounceCheckWidth = 60.0f;
-        const float OnlyCheckWidth = 50.0f;
-        const float CountSliderWidth = 100.0f;
-        const float PathDropdownWidth = 100.0f;
-        const float ControlSpacing = 10.0f;
-        
-        // Bounce checkbox
-        Row.VSplitLeft(BounceCheckWidth, &Button, &Right);
-        if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
-            g_Config.m_ZrAimbotLaserUseBounce ^= 1;
+        // Accuracy settings for specific weapons
+        if(WeaponId == WEAPON_TAB_HOOK) // Hook
+        {
+            SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+            SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+            Row.VSplitLeft(SliderWidth, &Button, &Right);
+            Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button, 
+                Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale, 
+                CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+        }
+        else if(WeaponId == WEAPON_LASER)
+        {
+            SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+            SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+            
+            // First row: bounce and bounce-only checkboxes
+            Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+            if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
+                g_Config.m_ZrAimbotLaserUseBounce ^= 1;
 
-        // Only checkbox
-        Right.VSplitLeft(ControlSpacing, nullptr, &Right);
-        Right.VSplitLeft(OnlyCheckWidth, &Button, &Right);
-        if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
-            g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
+            if(g_Config.m_ZrAimbotLaserUseBounce)
+            {
+                // Bounce only checkbox on same row
+                Right.VSplitLeft(CheckboxWidth + 20.0f, &Button, &Right); // Added some extra spacing
+                if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("bounce only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
+                    g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
 
-        // Bounce count slider
-        Right.VSplitLeft(ControlSpacing, nullptr, &Right);
-        Right.VSplitLeft(CountSliderWidth, &Button, &Right);
-        Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button, Localize("count"), 1, 10, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+                // Second row: bounce count and path selection
+                SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+                SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+                
+                // Bounce count slider
+                Row.VSplitLeft(SliderWidth, &Button, &Right);
+                Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button, 
+                    Localize("bounce count"), 1, 10, &CUi::ms_LinearScrollbarScale, 
+                    CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
 
-        // Path dropdown
-        Right.VSplitLeft(ControlSpacing, nullptr, &Right);
-        Right.VSplitLeft(PathDropdownWidth, &Button, nullptr);
-        const char *apBouncePaths[] = {"closest", "furthest", "random"};
-        static CUi::SDropDownState s_BouncePathDropDownState;
-        static CScrollRegion s_BouncePathDropDownScrollRegion;
-        s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
-        g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
+                // Path selection dropdown
+                Right.VSplitLeft(20.0f, nullptr, &Right); // Add spacing between slider and dropdown
+                Right.VSplitLeft(120.0f, &Button, &Right); // Fixed width for dropdown
+                const char *apBouncePaths[] = {"closest", "furthest", "random"};
+                static CUi::SDropDownState s_BouncePathDropDownState;
+                static CScrollRegion s_BouncePathDropDownScrollRegion;
+                s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
+                g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
+            }
+        }
     }
 
     // Discord settings (RPC checkbox and dropdown on same row)
@@ -253,10 +237,6 @@ void CMenus::RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabI
     // These are the original sizes of the weapons taken from https://teedata.net/template/gameskin_clear
     switch(WeaponId)
     {
-        case 6: // Hook
-            WeaponWidth = 128.0f;
-            WeaponHeight = 32.0f;
-            break;
         case WEAPON_HAMMER:
             WeaponWidth = 128.0f;
             WeaponHeight = 96.0f;
@@ -280,6 +260,10 @@ void CMenus::RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabI
         case WEAPON_NINJA:
             WeaponWidth = 256.0f;
             WeaponHeight = 64.0f;
+            break;
+        case WEAPON_TAB_HOOK:
+            WeaponWidth = 128.0f;
+            WeaponHeight = 32.0f;
             break;
     }
 
