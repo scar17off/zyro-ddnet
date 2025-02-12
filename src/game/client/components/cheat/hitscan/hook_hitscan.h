@@ -14,6 +14,7 @@ public:
     virtual int Sizeof() const override { return sizeof(*this); }
 
     vec2 EdgeScan(int ClientId);
+    bool HitScanHook(vec2 initPos, vec2 targetPos, vec2 scanDir);
 
 private:
     class CScanJob : public IJob
@@ -49,7 +50,6 @@ private:
     };
 
     void ScanAngles(float StartAngle, float EndAngle, int Steps, int ClientId, std::vector<vec2> &ValidPoints);
-    bool HitScanHook(vec2 initPos, vec2 targetPos, vec2 scanDir);
     bool IntersectCharacter(vec2 hookPos, vec2 targetPos, vec2 &newPos);
 
     std::mutex m_ScanMutex;

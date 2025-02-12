@@ -346,16 +346,23 @@ int CControls::SnapInput(int *pData)
 					// Try edge scan first for hook
 					AimPosition = m_pClient->m_HookHitscan.EdgeScan(Target);
 					
-					// If edge scan fails, try prediction as fallback
-					if(length(AimPosition) == 0.0f)
+					// Only try prediction if edge scan fails AND we're just pressing hook (not holding)
+					if(length(AimPosition) < 1.0f && HookPressed)
 					{
 						vec2 myVel = m_pClient->m_PredictedChar.m_Vel;
 						vec2 targetVel = m_pClient->m_aClients[Target].m_Predicted.m_Vel;
 						vec2 predictedPos = PlayerPos;
 						
+						// Only set aim if prediction succeeds
 						if(m_pClient->m_HookPrediction.PredictHook(LocalPos, myVel, predictedPos, targetVel))
 						{
-							AimPosition = predictedPos - LocalPos;
+							vec2 predictedDirection = predictedPos - LocalPos;
+							
+							// Verify the predicted position with hitscan before using it
+							if(m_pClient->m_HookHitscan.HitScanHook(LocalPos, predictedPos, predictedDirection))
+							{
+								AimPosition = predictedDirection;
+							}
 						}
 					}
 				}
