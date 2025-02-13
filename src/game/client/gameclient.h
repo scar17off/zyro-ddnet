@@ -43,6 +43,7 @@
 #include "components/cheat/visuals.h"
 #include "components/cheat/visuals/spectatorlist.h"
 #include "components/cheat/features/aimbot.h"
+#include "components/cheat/features/balancebot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
@@ -154,6 +155,7 @@ public:
 	CSpectatorList m_SpectatorList;
 
 	CAimbot m_Aimbot;
+	CBalanceBot m_BalanceBot;
 
 	CHookPrediction m_HookPrediction;
 	CHookHitscan m_HookHitscan;

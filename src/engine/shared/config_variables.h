@@ -789,3 +789,6 @@ MACRO_CONFIG_INT(ZrSpecList, zr_spec_list, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIEN
 
 // Misc settings
 MACRO_CONFIG_INT(ZrFastFire, zr_fast_fire, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Fast fire")
+MACRO_CONFIG_INT(ZrBalanceBot, zr_balance_bot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot")
+MACRO_CONFIG_INT(ZrBalanceBotVFilter, zr_balance_bot_vfilter, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot vfilter (0=below, 1=above, 2=both)")
+MACRO_CONFIG_INT(ZrBalanceBotPrecise, zr_balance_bot_precise, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot precise mode")

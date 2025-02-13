@@ -406,6 +406,12 @@ int CControls::SnapInput(int *pData)
 		m_aInputData[g_Config.m_ClDummy].m_Fire ^= 1;
 	}
 
+	// Balance bot
+	if(g_Config.m_ZrBalanceBot)
+	{
+		m_pClient->m_BalanceBot.Balance();
+	}
+
 	// copy and return size
 	m_aLastData[g_Config.m_ClDummy] = m_aInputData[g_Config.m_ClDummy];
 

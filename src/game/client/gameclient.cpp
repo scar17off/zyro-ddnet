@@ -60,6 +60,7 @@
 #include "components/cheat/visuals.h"
 #include "components/cheat/visuals/spectatorlist.h"
 #include "components/cheat/features/aimbot.h"
+#include "components/cheat/features/balancebot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
@@ -155,6 +156,7 @@ void CGameClient::OnConsoleInit()
 						  &m_SpectatorList,
 
 						  &m_Aimbot,
+						  &m_BalanceBot,
 
 						  &m_HookPrediction,
 						  &m_HookHitscan,

@@ -243,13 +243,30 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	if(DoButton_CheckBox(&g_Config.m_ZrSpecList, Localize("spec list"), g_Config.m_ZrSpecList, &Button))
 		g_Config.m_ZrSpecList ^= 1;
 	
-	// misc row
+	// Misc settings (fast fire and balance bot and vertical filter dropdown on same row)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrFastFire, Localize("ff"), g_Config.m_ZrFastFire, &Button))
 		g_Config.m_ZrFastFire ^= 1;
 		
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBot, Localize("bb"), g_Config.m_ZrBalanceBot, &Button))
+		g_Config.m_ZrBalanceBot ^= 1;
+
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(70.0f, &Button, &Right);
+	const char *apBalanceVFilter[] = {"below", "above", "both"};
+	static CUi::SDropDownState s_BalanceVFilterDropDownState;
+	static CScrollRegion s_BalanceVFilterDropDownScrollRegion;
+	s_BalanceVFilterDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BalanceVFilterDropDownScrollRegion;
+	g_Config.m_ZrBalanceBotVFilter = Ui()->DoDropDown(&Button, g_Config.m_ZrBalanceBotVFilter, apBalanceVFilter, std::size(apBalanceVFilter), s_BalanceVFilterDropDownState);
+
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBotPrecise, Localize("precise"), g_Config.m_ZrBalanceBotPrecise, &Button))
+		g_Config.m_ZrBalanceBotPrecise ^= 1;
+
 	// Discord settings (RPC checkbox and dropdown on same row)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);

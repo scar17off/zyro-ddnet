@@ -220,6 +220,11 @@ public:
 	 * @return `true` if the component used the touch events, `false` otherwise
 	 */
 	virtual bool OnTouchState(const std::vector<IInput::CTouchFingerState> &vTouchFingerStates) { return false; }
+
+	/**
+	 * Called when the component should get ticked.
+	 */
+	virtual void OnTick() {};
 };
 
 #endif
