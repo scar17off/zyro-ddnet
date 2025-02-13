@@ -243,14 +243,17 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	if(DoButton_CheckBox(&g_Config.m_ZrSpecList, Localize("spec list"), g_Config.m_ZrSpecList, &Button))
 		g_Config.m_ZrSpecList ^= 1;
 	
-	// Misc settings (fast fire and balance bot and vertical filter dropdown on same row)
+	// Fast fire row (single item)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrFastFire, Localize("ff"), g_Config.m_ZrFastFire, &Button))
 		g_Config.m_ZrFastFire ^= 1;
-		
-	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+
+	// Balance bot settings (checkbox and dropdown on same row)
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBot, Localize("bb"), g_Config.m_ZrBalanceBot, &Button))
 		g_Config.m_ZrBalanceBot ^= 1;
 
