@@ -242,7 +242,14 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrSpecList, Localize("spec list"), g_Config.m_ZrSpecList, &Button))
 		g_Config.m_ZrSpecList ^= 1;
-
+	
+	// misc row
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrFastFire, Localize("ff"), g_Config.m_ZrFastFire, &Button))
+		g_Config.m_ZrFastFire ^= 1;
+		
 	// Discord settings (RPC checkbox and dropdown on same row)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);

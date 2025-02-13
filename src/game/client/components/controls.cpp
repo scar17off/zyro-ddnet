@@ -399,6 +399,13 @@ int CControls::SnapInput(int *pData)
 		}
 	}
 
+	// Fast fire (not sure if it works)
+	// TODO: make it get the fire button from binds
+	if(g_Config.m_ZrFastFire && m_pClient->Input()->KeyIsPressed(KEY_MOUSE_1) && !m_pClient->m_aClients[m_pClient->m_Snap.m_LocalClientId].m_Jetpack)
+	{
+		m_aInputData[g_Config.m_ClDummy].m_Fire ^= 1;
+	}
+
 	// copy and return size
 	m_aLastData[g_Config.m_ClDummy] = m_aInputData[g_Config.m_ClDummy];
 

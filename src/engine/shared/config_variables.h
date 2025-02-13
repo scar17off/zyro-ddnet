@@ -786,3 +786,6 @@ WEAPON_CONFIG(Ninja)
 MACRO_CONFIG_INT(ZrPlrBox, zr_esp_player_box, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show box ESP on players")
 MACRO_CONFIG_INT(ZrPlrTracer, zr_plr_tracer, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show tracers to players")
 MACRO_CONFIG_INT(ZrSpecList, zr_spec_list, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show spectator list")
+
+// Misc settings
+MACRO_CONFIG_INT(ZrFastFire, zr_fast_fire, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Fast fire")
