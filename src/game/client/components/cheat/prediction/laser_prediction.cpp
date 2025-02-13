@@ -61,6 +61,7 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
     const CGameClient::CClientData &Target = m_pClient->m_aClients[TargetID];
     vec2 targetPos = Target.m_RenderPos;
     vec2 targetVel = Target.m_Predicted.m_Vel;
+    
     const int TICKS_PER_BOUNCE = m_pClient->m_aTuning[g_Config.m_ClDummy].m_LaserBounceDelay;
     
     // Create temporary world and character core for prediction
@@ -73,7 +74,6 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
     if(!pTargetChar)
         return false;
     
-    // Initialize core with target data
     tempCore.Read(pTargetChar);
     
     // Check each segment of the laser path
@@ -85,8 +85,10 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
         vec2 PredictedPos = targetPos;
         if(g_Config.m_ZrAimbotLaserPredict)
         {
-            // Calculate ticks based on number of bounces
-            int ticksToPredict = (j-1) * TICKS_PER_BOUNCE;
+            int ticksToPredict = (j-1) * TICKS_PER_BOUNCE / 50;
+            
+            // Reset core position for fresh prediction
+            tempCore.Read(pTargetChar);
             
             // Predict position using character core
             for(int tick = 0; tick < ticksToPredict; tick++)
@@ -100,8 +102,13 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
             }
             
             PredictedPos = tempCore.m_Pos;
+            
+            // Not sure if this is needed, but it's here for now
+            float PartialTick = float(ticksToPredict) / 50.0f;
+            PredictedPos += tempCore.m_Vel * PartialTick;
         }
         
+        // Check if laser segment intersects with predicted player position
         vec2 closestPoint;
         if(closest_point_on_line(Start, End, PredictedPos, closestPoint))
         {
@@ -109,12 +116,6 @@ bool CLaserPrediction::CheckLaserHit(const std::vector<vec2> &Path, int TargetID
             {
                 return true;
             }
-        }
-        
-        // Reset core position for next bounce prediction
-        if(j < Path.size() - 1)
-        {
-            tempCore.Read(pTargetChar);
         }
     }
 

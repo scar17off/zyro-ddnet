@@ -200,6 +200,11 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 				Right.VSplitLeft(CheckboxWidth + 20.0f, &Button, &Right);
 				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("bounce only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
 					g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
+				
+				// Prediction checkbox on same row
+				Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserPredict, Localize("predict"), g_Config.m_ZrAimbotLaserPredict, &Button))
+					g_Config.m_ZrAimbotLaserPredict ^= 1;
 
 				// Second row: bounce count and path selection
 				SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
