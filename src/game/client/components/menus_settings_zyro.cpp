@@ -189,8 +189,16 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 
+			// Accuracy settings
+			Row.VSplitLeft(SliderWidth, &Button, &Right);
+			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Button,
+				Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale,
+				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+
 			// Bounce settings
 			// Bounce
+			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 			Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 			if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
 				g_Config.m_ZrAimbotLaserUseBounce ^= 1;
