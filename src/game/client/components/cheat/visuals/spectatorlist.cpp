@@ -67,6 +67,7 @@ void CSpectatorList::DrawPausedIcon(float X, float Y, float Size, const ColorRGB
 
 void CSpectatorList::OnRender()
 {
+    // Only render if spectator list is enabled
     if(!g_Config.m_ZrSpecList)
         return; 
 

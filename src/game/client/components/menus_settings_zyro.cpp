@@ -147,15 +147,15 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		int WeaponId = s_CurAimbotTab;
 		const WeaponConfig *pConfig = m_pClient->m_Aimbot.GetWeaponConfig(WeaponId);
 
-		// Create row for aim checkbox
+		// Create row for aim
 		SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 
-		// Aim checkbox (enables aimbot for this weapon)
+		// Aim
 		Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 		if(DoButton_CheckBox(pConfig->m_pEnabled, Localize("aim"), *pConfig->m_pEnabled, &Button))
 			*pConfig->m_pEnabled ^= 1;
 
-		// Draw FOV checkbox (no text)
+		// Draw FOV
 		Right.VSplitLeft(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ZrAimbotDrawFov, "", g_Config.m_ZrAimbotDrawFov, &Button))
 			g_Config.m_ZrAimbotDrawFov ^= 1;
@@ -189,24 +189,25 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 
-			// First row: bounce and bounce-only checkboxes
+			// Bounce settings
+			// Bounce
 			Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 			if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
 				g_Config.m_ZrAimbotLaserUseBounce ^= 1;
 
-			if(g_Config.m_ZrAimbotLaserUseBounce)
+			// if(g_Config.m_ZrAimbotLaserUseBounce)
 			{
-				// Bounce only checkbox on same row
+				// Bounce only
 				Right.VSplitLeft(CheckboxWidth + 20.0f, &Button, &Right);
 				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("bounce only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
 					g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
 				
-				// Prediction checkbox on same row
+				// Prediction
 				Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserPredict, Localize("predict"), g_Config.m_ZrAimbotLaserPredict, &Button))
 					g_Config.m_ZrAimbotLaserPredict ^= 1;
 
-				// Second row: bounce count and path selection
+				// Second row
 				SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 				SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 
@@ -228,35 +229,39 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		}
 	}
 
-	// Visual settings (plr box and plr tracer and spec list on same row)
+	// Visual settings
+	// Player box
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrPlrBox, Localize("plr box"), g_Config.m_ZrPlrBox, &Button))
 		g_Config.m_ZrPlrBox ^= 1;
 
+	// Player tracer
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrPlrTracer, Localize("plr tracer"), g_Config.m_ZrPlrTracer, &Button))
 		g_Config.m_ZrPlrTracer ^= 1;
 
+	// Spectator list
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrSpecList, Localize("spec list"), g_Config.m_ZrSpecList, &Button))
 		g_Config.m_ZrSpecList ^= 1;
 	
-	// Fast fire row (single item)
+	// Fast fire
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrFastFire, Localize("ff"), g_Config.m_ZrFastFire, &Button))
 		g_Config.m_ZrFastFire ^= 1;
 
-	// Balance bot settings (checkbox and dropdown on same row)
+	// Balance bot settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBot, Localize("bb"), g_Config.m_ZrBalanceBot, &Button))
 		g_Config.m_ZrBalanceBot ^= 1;
 
+	// Balance bot vfilter
 	Right.VSplitLeft(5.0f, nullptr, &Right);
 	Right.VSplitLeft(70.0f, &Button, &Right);
 	const char *apBalanceVFilter[] = {"below", "above", "both"};
@@ -265,19 +270,40 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	s_BalanceVFilterDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BalanceVFilterDropDownScrollRegion;
 	g_Config.m_ZrBalanceBotVFilter = Ui()->DoDropDown(&Button, g_Config.m_ZrBalanceBotVFilter, apBalanceVFilter, std::size(apBalanceVFilter), s_BalanceVFilterDropDownState);
 
+	// Balance bot precise
 	Right.VSplitLeft(5.0f, nullptr, &Right);
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBotPrecise, Localize("precise"), g_Config.m_ZrBalanceBotPrecise, &Button))
 		g_Config.m_ZrBalanceBotPrecise ^= 1;
 
-	// Discord settings (RPC checkbox and dropdown on same row)
+	// Array list settings
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrArrayList, Localize("arraylist"), g_Config.m_ZrArrayList, &Button))
+		g_Config.m_ZrArrayList ^= 1;
+
+	// Array list gradient
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrArrayListGradient, Localize("gradient"), g_Config.m_ZrArrayListGradient, &Button))
+		g_Config.m_ZrArrayListGradient ^= 1;
+
+	// Array list line
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrArrayListLine, Localize("line"), g_Config.m_ZrArrayListLine, &Button))
+		g_Config.m_ZrArrayListLine ^= 1;
+
+	// Discord settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
 		g_Config.m_ZrDiscordRPC ^= 1;
 
-	Right.VSplitLeft(80.0f, &Button, &Right);
+	// Discord app dropdown
+	Right.VSplitLeft(70.0f, &Button, &Right);
 	const char *apDiscordApps[] = {"zyro", "krx", "cff", "ddnet", "tater", "cactus", "aiodob"};
 	static CUi::SDropDownState s_DiscordDropDownState;
 	static CScrollRegion s_DiscordDropDownScrollRegion;

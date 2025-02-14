@@ -42,6 +42,7 @@
 #include "components/cheat/cheat.h"
 #include "components/cheat/visuals.h"
 #include "components/cheat/visuals/spectatorlist.h"
+#include "components/cheat/visuals/arraylist.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/features/balancebot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
@@ -153,6 +154,7 @@ public:
 
 	CVisuals m_Visuals;
 	CSpectatorList m_SpectatorList;
+	CArrayList m_ArrayList;
 
 	CAimbot m_Aimbot;
 	CBalanceBot m_BalanceBot;

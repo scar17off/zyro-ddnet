@@ -792,3 +792,8 @@ MACRO_CONFIG_INT(ZrFastFire, zr_fast_fire, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIEN
 MACRO_CONFIG_INT(ZrBalanceBot, zr_balance_bot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot")
 MACRO_CONFIG_INT(ZrBalanceBotVFilter, zr_balance_bot_vfilter, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot vfilter (0=below, 1=above, 2=both)")
 MACRO_CONFIG_INT(ZrBalanceBotPrecise, zr_balance_bot_precise, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot precise mode")
+
+// Arraylist settings
+MACRO_CONFIG_INT(ZrArrayList, zr_arraylist, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show arraylist")
+MACRO_CONFIG_INT(ZrArrayListGradient, zr_arraylist_gradient, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show gradient")
+MACRO_CONFIG_INT(ZrArrayListLine, zr_arraylist_line, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show line")

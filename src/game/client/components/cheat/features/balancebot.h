@@ -8,6 +8,8 @@
 
 class CBalanceBot : public CComponent
 {
+    friend class CArrayList;
+
 public:
     virtual int Sizeof() const override { return sizeof(*this); }
     virtual void OnConsoleInit() override;
