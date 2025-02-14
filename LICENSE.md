@@ -3,11 +3,13 @@ MIT License with Attribution Requirement
 Copyright (c) 2025 scar17off
 
 This software is a modified version of DDRaceNetwork, which is a modified version of Teeworlds.
+Some features like PredictHook and other aimbot-related functionality are derived from [fluffytw](https://github.com/fluffysnaff/fluffytw).
 
 The following copyrights are from the client software this project modifies:  
 Copyright (C) 2007-2014 Magnus Auvinen (Teeworlds)  
 Copyright (C) 2010-2011 Shereef Marzouk (DDRace)  
-Copyright (C) 2010-2025 Dennis Felsing (DDNet)
+Copyright (C) 2010-2025 Dennis Felsing (DDNet)  
+Copyright (C) fluffysnaff (fluffytw)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
