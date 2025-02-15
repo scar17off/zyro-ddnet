@@ -3,6 +3,7 @@
 #include <engine/shared/config.h>
 #include <limits>
 #include <game/mapitems.h>
+#include <chrono>
 
 // today i discovered that the pathfinder name KRX client is using is called Flow Field Pathfinder...
 // so i decided to make it, and it works pretty well, but it's not perfect.
@@ -215,7 +216,8 @@ void CFlowFieldPathfinder::GenerateFlowField()
         return;
     }
 
-    auto startTime = time_get();
+    // Start timing
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     // Reset distances only for reachable tiles
     for(int y = 0; y < m_Height; y++)
@@ -285,14 +287,15 @@ void CFlowFieldPathfinder::GenerateFlowField()
     
     m_PathFound = true;
     
-    // Calculate time taken
-    auto endTime = time_get();
-    float timeTaken = (float)(endTime - startTime) / time_freq();
+    // End timing and calculate duration
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float, std::milli> duration = endTime - startTime;
+    m_LastPathfindingTime = duration.count();
     
     // Send completion message
     char aBuf[64];
-    str_format(aBuf, sizeof(aBuf), "Pathfinding complete in %.2f ms | Success: %s", 
-        timeTaken * 1000.0f,
+    str_format(aBuf, sizeof(aBuf), "Pathfinding complete in %.3f ms | Success: %s", 
+        m_LastPathfindingTime,
         m_PathFound ? "Yes" : "No"
     );
     Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", aBuf);

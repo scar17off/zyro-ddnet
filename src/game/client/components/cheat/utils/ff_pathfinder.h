@@ -40,6 +40,7 @@ private:
     CLayers *m_pLayers;
 
     std::vector<std::vector<bool>> m_ReachableArea;
+    float m_LastPathfindingTime; // Store pathfinding time
     void FloodFillFromFinish();
     std::vector<vec2> FindTiles(int TileType) const;
     void InitializeGrid();
