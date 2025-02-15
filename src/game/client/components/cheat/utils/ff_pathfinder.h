@@ -39,7 +39,9 @@ private:
     bool m_PathFound;
     CLayers *m_pLayers;
 
-    void FindFinishTiles();
+    std::vector<std::vector<bool>> m_ReachableArea;
+    void FloodFillFromFinish();
+    std::vector<vec2> FindTiles(int TileType) const;
     void InitializeGrid();
     bool IsValidTile(int x, int y) const;
     std::vector<vec2> GetValidNeighbors(const vec2& pos) const;

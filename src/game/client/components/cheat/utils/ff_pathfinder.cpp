@@ -24,68 +24,6 @@ void CFlowFieldPathfinder::OnMapLoad()
     OnReset();
 }
 
-void CFlowFieldPathfinder::FindFinishTiles()
-{
-    m_FinishTiles.clear();
-    int finishCount = 0;
-
-    // Get game layer data directly
-    CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
-    if(!pTiles)
-    {
-        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "No tile data found in FindFinishTiles!");
-        return;
-    }
-
-    // Verify dimensions
-    int Width = m_pLayers->GameLayer()->m_Width;
-    int Height = m_pLayers->GameLayer()->m_Height;
-    
-    char aBuf[256];
-    str_format(aBuf, sizeof(aBuf), "Scanning for TILE_FINISH (0x%x) in %dx%d map", TILE_FINISH, Width, Height);
-    Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "pathfinder", aBuf);
-    
-    // Scan entire map for finish tiles
-    for(int y = 0; y < Height; y++)
-    {
-        for(int x = 0; x < Width; x++)
-        {
-            int Index = y * Width + x;
-            
-            // Check both tile layers (I don't know why it's like this, but it's like this)
-            bool isFinish = false;
-            
-            // Check game layer tile
-            if(pTiles[Index].m_Index == TILE_FINISH)
-                isFinish = true;
-                
-            // Check front layer tile
-            if(!isFinish)
-            {
-                vec2 pos(x * 32.0f + 16.0f, y * 32.0f + 16.0f);
-                int MapIndex = m_pClient->Collision()->GetMapIndex(pos);
-                if(m_pClient->Collision()->GetTileIndex(MapIndex) == TILE_FINISH ||
-                   m_pClient->Collision()->GetTileIndex(MapIndex) == TILE_FINISH)
-                {
-                    isFinish = true;
-                }
-            }
-
-            if(isFinish)
-            {
-                vec2 pos(x * 32.0f + 16.0f, y * 32.0f + 16.0f);
-                m_FinishTiles.push_back(pos);
-                finishCount++;
-                str_format(aBuf, sizeof(aBuf), "Found finish tile at (%d,%d) [Index=%d]", x, y, Index);
-                Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", aBuf);
-            }
-        }
-    }
-
-    str_format(aBuf, sizeof(aBuf), "Found total of %d finish tiles", finishCount);
-    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", aBuf);
-}
-
 void CFlowFieldPathfinder::InitializeGrid()
 {
     m_FlowField.clear();
@@ -122,7 +60,28 @@ void CFlowFieldPathfinder::InitializeGrid()
 
 bool CFlowFieldPathfinder::IsValidTile(int x, int y) const
 {
-    return x >= 0 && x < m_Width && y >= 0 && y < m_Height && !m_FlowField[y][x].isWall;
+    // First check map bounds
+    if(x < 0 || x >= m_Width || y < 0 || y >= m_Height)
+        return false;
+
+    // Check if tile is marked as wall in our grid
+    if(m_FlowField[y][x].isWall)
+        return false;
+
+    // Double check with collision
+    vec2 pos(x * 32.0f + 16.0f, y * 32.0f + 16.0f);
+    int MapIndex = m_pClient->Collision()->GetMapIndex(pos);
+    int TileIndex = m_pClient->Collision()->GetTileIndex(MapIndex);
+    
+    // Check for any solid/blocking tiles
+    return !(
+        TileIndex == TILE_DEATH || 
+        TileIndex == TILE_SOLID ||
+        TileIndex == TILE_NOHOOK ||
+        TileIndex == TILE_STOP ||
+        TileIndex == TILE_STOPS ||
+        TileIndex == TILE_STOPA
+    );
 }
 
 std::vector<vec2> CFlowFieldPathfinder::GetValidNeighbors(const vec2& pos) const
@@ -140,19 +99,26 @@ std::vector<vec2> CFlowFieldPathfinder::GetValidNeighbors(const vec2& pos) const
         int newX = x + dx[i];
         int newY = y + dy[i];
         
+        // Check if neighbor is valid (not solid/wall)
         if(IsValidTile(newX, newY))
         {
-            // For diagonal movement, check if both adjacent cells are clear
+            // For diagonal movement, check if both adjacent cells are valid
             if(dx[i] != 0 && dy[i] != 0)
             {
                 if(IsValidTile(x + dx[i], y) && IsValidTile(x, y + dy[i]))
                 {
-                    neighbors.push_back(m_FlowField[newY][newX].pos);
+                    // Also check the actual diagonal path
+                    vec2 cornerPos((x + dx[i]) * 32.0f + 16.0f, (y + dy[i]) * 32.0f + 16.0f);
+                    if(!m_pClient->Collision()->IntersectLine(pos, cornerPos, nullptr, nullptr))
+                        neighbors.push_back(m_FlowField[newY][newX].pos);
                 }
             }
             else
             {
-                neighbors.push_back(m_FlowField[newY][newX].pos);
+                // For orthogonal movement, check direct line of sight
+                vec2 neighborPos(newX * 32.0f + 16.0f, newY * 32.0f + 16.0f);
+                if(!m_pClient->Collision()->IntersectLine(pos, neighborPos, nullptr, nullptr))
+                    neighbors.push_back(m_FlowField[newY][newX].pos);
             }
         }
     }
@@ -165,6 +131,70 @@ float CFlowFieldPathfinder::GetHeuristic(const vec2& a, const vec2& b) const
     return length(b-a);
 }
 
+void CFlowFieldPathfinder::FloodFillFromFinish()
+{
+    // Initialize reachable area
+    m_ReachableArea.clear();
+    m_ReachableArea.resize(m_Height, std::vector<bool>(m_Width, false));
+
+    // Queue for flood fill
+    std::queue<vec2> queue;
+
+    // Start from all finish tiles
+    for(const auto& finish : m_FinishTiles)
+    {
+        int fx = static_cast<int>(finish.x/32.0f);
+        int fy = static_cast<int>(finish.y/32.0f);
+        if(!m_ReachableArea[fy][fx])
+        {
+            m_ReachableArea[fy][fx] = true;
+            queue.push(finish);
+        }
+    }
+
+    // Get player position in tile coordinates
+    int playerX = static_cast<int>(m_StartPos.x/32.0f);
+    int playerY = static_cast<int>(m_StartPos.y/32.0f);
+    bool playerReachable = false;
+
+    // Flood fill
+    while(!queue.empty() && !playerReachable)
+    {
+        vec2 pos = queue.front();
+        queue.pop();
+
+        int x = static_cast<int>(pos.x/32.0f);
+        int y = static_cast<int>(pos.y/32.0f);
+
+        // Check if we reached player position
+        if(x == playerX && y == playerY)
+        {
+            playerReachable = true;
+            continue;
+        }
+
+        // Add valid neighbors to queue
+        for(const auto& neighbor : GetValidNeighbors(pos))
+        {
+            int nx = static_cast<int>(neighbor.x/32.0f);
+            int ny = static_cast<int>(neighbor.y/32.0f);
+
+            if(!m_ReachableArea[ny][nx])
+            {
+                m_ReachableArea[ny][nx] = true;
+                queue.push(neighbor);
+            }
+        }
+    }
+
+    // If player isn't reachable, clear everything
+    if(!playerReachable)
+    {
+        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "No valid path to finish!");
+        m_ReachableArea.clear();
+    }
+}
+
 void CFlowFieldPathfinder::GenerateFlowField()
 {
     if(m_FinishTiles.empty())
@@ -173,19 +203,29 @@ void CFlowFieldPathfinder::GenerateFlowField()
         return;
     }
 
-    char aBuf[256];
-    str_format(aBuf, sizeof(aBuf), "Generating flow field from %d finish tiles", (int)m_FinishTiles.size());
-    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", aBuf);
-    
-    auto startTime = time_get();
-    
     // Get local player position
     m_StartPos = m_pClient->m_PredictedChar.m_Pos;
+
+    // First do flood fill to find reachable area
+    FloodFillFromFinish();
     
-    // Reset distances
-    for(auto& row : m_FlowField)
-        for(auto& node : row)
-            node.distance = std::numeric_limits<float>::infinity();
+    if(m_ReachableArea.empty())
+    {
+        m_PathFound = false;
+        return;
+    }
+
+    auto startTime = time_get();
+
+    // Reset distances only for reachable tiles
+    for(int y = 0; y < m_Height; y++)
+    {
+        for(int x = 0; x < m_Width; x++)
+        {
+            if(m_ReachableArea[y][x])
+                m_FlowField[y][x].distance = std::numeric_limits<float>::infinity();
+        }
+    }
 
     // Custom comparator for the priority queue
     struct CompareDistance {
@@ -234,12 +274,10 @@ void CFlowFieldPathfinder::GenerateFlowField()
             
             float newDist = dist + GetHeuristic(pos, neighbor);
             
-            if(newDist < m_FlowField[ny][nx].distance)
+            if(newDist < m_FlowField[ny][nx].distance && m_ReachableArea[ny][nx])
             {
                 m_FlowField[ny][nx].distance = newDist;
-                // here if we want to reverse the direction because we want to move towards the finish tile
-                // m_FlowField[ny][nx].direction = normalize(neighbor - pos); // from player to finish tile
-                m_FlowField[ny][nx].direction = normalize(pos - neighbor); // from finish tile to player
+                m_FlowField[ny][nx].direction = normalize(pos - neighbor);
                 queue.push({newDist, neighbor});
             }
         }
@@ -252,6 +290,7 @@ void CFlowFieldPathfinder::GenerateFlowField()
     float timeTaken = (float)(endTime - startTime) / time_freq();
     
     // Send completion message
+    char aBuf[64];
     str_format(aBuf, sizeof(aBuf), "Pathfinding complete in %.2f ms | Success: %s", 
         timeTaken * 1000.0f,
         m_PathFound ? "Yes" : "No"
@@ -261,42 +300,38 @@ void CFlowFieldPathfinder::GenerateFlowField()
 
 bool CFlowFieldPathfinder::FindPath()
 {
-    // If we haven't tried to find finish tiles yet, do it now
+    // Check if game is ready
+    if(!m_pClient->m_Snap.m_pGameInfoObj)
+    {
+        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Game not ready yet!");
+        return false;
+    }
+
+    m_pLayers = m_pClient->Layers();
+    if(!m_pLayers || !m_pLayers->GameLayer() || !m_pLayers->Map())
+    {
+        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Map data not available!");
+        return false;
+    }
+
+    // Always update dimensions in case of map change
+    m_Width = m_pLayers->GameLayer()->m_Width;
+    m_Height = m_pLayers->GameLayer()->m_Height;
+
+    // Reset and reinitialize everything
+    m_PathFound = false;
+    InitializeGrid();
+    m_FinishTiles = FindTiles(TILE_FINISH);
+
     if(m_FinishTiles.empty())
     {
-        // Check if game is ready
-        if(!m_pClient->m_Snap.m_pGameInfoObj)
-        {
-            Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Game not ready yet!");
-            return false;
-        }
-
-        m_pLayers = m_pClient->Layers();
-        if(!m_pLayers || !m_pLayers->GameLayer() || !m_pLayers->Map())
-        {
-            Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Map data not available!");
-            return false;
-        }
-
-        m_Width = m_pLayers->GameLayer()->m_Width;
-        m_Height = m_pLayers->GameLayer()->m_Height;
-
-        // Initialize grid and find finish tiles
-        InitializeGrid();
-        FindFinishTiles();
+        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "No finish tiles found!");
+        return false;
     }
 
-    if(!m_PathFound)
-    {
-        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Starting pathfinding...");
-        if(m_FinishTiles.empty())
-        {
-            Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "No finish tiles found!");
-            return false;
-        }
-        
-        GenerateFlowField();
-    }
+    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "Starting pathfinding...");
+    GenerateFlowField();
+    
     return m_PathFound;
 }
 
@@ -375,9 +410,10 @@ void CFlowFieldPathfinder::OnRender()
     {
         for(int x = StartX; x < EndX; x++)
         {
+            if(!m_ReachableArea[y][x])
+                continue;
+
             const Node& node = m_FlowField[y][x];
-            
-            // Skip walls and nodes with no direction
             if(node.isWall || length(node.direction) < 0.001f)
                 continue;
 
@@ -400,4 +436,64 @@ void CFlowFieldPathfinder::OnRender()
 
     // Restore original screen mapping
     Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+std::vector<vec2> CFlowFieldPathfinder::FindTiles(int TileType) const
+{
+    std::vector<vec2> tiles;
+
+    // Get game layer data
+    CTile *pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
+    if(!pTiles)
+    {
+        Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", "No tile data found!");
+        return tiles;
+    }
+
+    // Verify dimensions
+    int Width = m_pLayers->GameLayer()->m_Width;
+    int Height = m_pLayers->GameLayer()->m_Height;
+    
+    char aBuf[256];
+    str_format(aBuf, sizeof(aBuf), "Scanning for tile type 0x%x in %dx%d map", TileType, Width, Height);
+    Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "pathfinder", aBuf);
+    
+    // Scan entire map for tiles
+    for(int y = 0; y < Height; y++)
+    {
+        for(int x = 0; x < Width; x++)
+        {
+            int Index = y * Width + x;
+            bool found = false;
+            
+            // I'm not sure why we check both layers, but it works so i'm not gonna change it
+            // Check game layer tile
+            if(pTiles[Index].m_Index == TileType)
+                found = true;
+                
+            // Check front layer tile
+            if(!found)
+            {
+                vec2 pos(x * 32.0f + 16.0f, y * 32.0f + 16.0f);
+                int MapIndex = m_pClient->Collision()->GetMapIndex(pos);
+                if(m_pClient->Collision()->GetTileIndex(MapIndex) == TileType)
+                {
+                    found = true;
+                }
+            }
+
+            if(found)
+            {
+                vec2 pos(x * 32.0f + 16.0f, y * 32.0f + 16.0f);
+                tiles.push_back(pos);
+                str_format(aBuf, sizeof(aBuf), "Found tile at (%d,%d) [Index=%d]", x, y, Index);
+                Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "pathfinder", aBuf);
+            }
+        }
+    }
+
+    str_format(aBuf, sizeof(aBuf), "Found total of %d tiles", (int)tiles.size());
+    Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "pathfinder", aBuf);
+    
+    return tiles;
 }
