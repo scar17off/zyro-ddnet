@@ -790,6 +790,7 @@ MACRO_CONFIG_INT(ZrPlrTracer, zr_plr_tracer, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLI
 MACRO_CONFIG_INT(ZrSpecList, zr_spec_list, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show spectator list")
 
 // Misc settings
+MACRO_CONFIG_INT(ZrDebug, zr_debug, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Debug pathfinder")
 MACRO_CONFIG_INT(ZrFastFire, zr_fast_fire, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Fast fire")
 MACRO_CONFIG_INT(ZrBalanceBot, zr_balance_bot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot")
 MACRO_CONFIG_INT(ZrBalanceBotVFilter, zr_balance_bot_vfilter, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Balance bot vfilter (0=below, 1=above, 2=both)")
