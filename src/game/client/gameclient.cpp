@@ -65,6 +65,7 @@
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
+#include "components/cheat/utils/ff_pathfinder.h"
 
 #include "components/hud.h"
 #include "components/infomessages.h"
@@ -156,8 +157,10 @@ void CGameClient::OnConsoleInit()
 						  &m_Visuals,
 						  &m_SpectatorList,
 						  &m_ArrayList,
+
 						  &m_Aimbot,
 						  &m_BalanceBot,
+						  &m_FlowFieldPathfinder,
 
 						  &m_HookPrediction,
 						  &m_HookHitscan,

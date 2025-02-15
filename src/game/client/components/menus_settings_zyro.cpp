@@ -335,6 +335,18 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	static CScrollRegion s_DiscordDropDownScrollRegion;
 	s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
 	g_Config.m_ZrDiscord = Ui()->DoDropDown(&Button, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
+
+	// Mapbot settings
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+
+	// Path button
+	Row.VSplitLeft(30.0f, &Button, &Right);
+	static CButtonContainer s_PathButton;
+	if(DoButton_Menu(&s_PathButton, Localize("path"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
+	{
+		m_pClient->m_FlowFieldPathfinder.FindPath();
+	}
 }
 
 void CMenus::RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabId, const char *Label)
