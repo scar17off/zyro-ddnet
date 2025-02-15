@@ -2341,6 +2341,8 @@ if(CLIENT)
     components/cheat/features/aimbot.h
     components/cheat/features/balancebot.cpp
     components/cheat/features/balancebot.h
+    components/cheat/features/mapbot.cpp
+    components/cheat/features/mapbot.h
     components/cheat/hitscan/hook_hitscan.cpp
     components/cheat/hitscan/hook_hitscan.h
     components/cheat/prediction/hook_prediction.cpp

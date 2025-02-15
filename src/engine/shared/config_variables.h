@@ -800,3 +800,7 @@ MACRO_CONFIG_INT(ZrBalanceBotPrecise, zr_balance_bot_precise, 0, 0, 1, CFGFLAG_S
 MACRO_CONFIG_INT(ZrArrayList, zr_arraylist, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show arraylist")
 MACRO_CONFIG_INT(ZrArrayListGradient, zr_arraylist_gradient, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show gradient")
 MACRO_CONFIG_INT(ZrArrayListLine, zr_arraylist_line, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show line")
+
+// Mapbot settings
+MACRO_CONFIG_INT(ZrMapBot, zr_mapbot, 0, 0, 1, CFGFLAG_CLIENT, "Enable map bot")
+MACRO_CONFIG_INT(ZrMapBotAccuracy, zr_mapbot_accuracy, 45, 1, 200, CFGFLAG_CLIENT, "Map bot angle step accuracy (1-200)")

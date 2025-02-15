@@ -30,6 +30,27 @@ public:
                 direction(0,0), isWall(false) {}
     };
 
+    // Inline methods for mapbot
+    bool HasPath() const { return m_PathFound; }
+    std::vector<vec2> GetPath() const { 
+        std::vector<vec2> path;
+        // Just return the flow field directions
+        for(int y = 0; y < m_Height; y++) {
+            for(int x = 0; x < m_Width; x++) {
+                if(!m_FlowField[y][x].isWall)
+                    path.push_back(m_FlowField[y][x].direction);
+            }
+        }
+        return path;
+    }
+    vec2 GetStartPos() const { return m_StartPos; }
+    vec2 GetFinishPos() const { return !m_FinishTiles.empty() ? m_FinishTiles[0] : vec2(0,0); }
+    vec2 GetFlowDirection(int x, int y) const { 
+        if(IsValidTile(x, y))
+            return m_FlowField[y][x].direction;
+        return vec2(0,0);
+    }
+
 private:
     std::vector<vec2> m_FinishTiles;
     std::vector<std::vector<Node>> m_FlowField;
@@ -40,7 +61,7 @@ private:
     CLayers *m_pLayers;
 
     std::vector<std::vector<bool>> m_ReachableArea;
-    float m_LastPathfindingTime; // Store pathfinding time
+    float m_LastPathfindingTime;
     void FloodFillFromFinish();
     std::vector<vec2> FindTiles(int TileType) const;
     void InitializeGrid();

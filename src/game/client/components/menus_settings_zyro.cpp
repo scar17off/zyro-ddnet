@@ -324,6 +324,8 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	// Discord settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+
+	// RPC
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrDiscordRPC, Localize("rpc"), g_Config.m_ZrDiscordRPC, &Button))
 		g_Config.m_ZrDiscordRPC ^= 1;
@@ -339,13 +341,21 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	// Mapbot settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-
-	// Path button
-	Row.VSplitLeft(30.0f, &Button, &Right);
+	// Path
+	Row.VSplitLeft(100.0f, &Button, &Right);
 	static CButtonContainer s_PathButton;
 	if(DoButton_Menu(&s_PathButton, Localize("path"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
 	{
 		m_pClient->m_FlowFieldPathfinder.FindPath();
+	}
+
+	// Generate
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(100.0f, &Button, &Right);
+	static CButtonContainer s_GenerateButton;
+	if(DoButton_Menu(&s_GenerateButton, Localize("generate"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
+	{
+		m_pClient->m_MapBot.GeneratePath();
 	}
 }
 

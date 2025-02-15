@@ -62,10 +62,11 @@
 #include "components/cheat/visuals/arraylist.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/features/balancebot.h"
+#include "components/cheat/utils/ff_pathfinder.h"
+#include "components/cheat/features/mapbot.h"
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
-#include "components/cheat/utils/ff_pathfinder.h"
 
 #include "components/hud.h"
 #include "components/infomessages.h"
@@ -161,6 +162,7 @@ void CGameClient::OnConsoleInit()
 						  &m_Aimbot,
 						  &m_BalanceBot,
 						  &m_FlowFieldPathfinder,
+						  &m_MapBot,
 
 						  &m_HookPrediction,
 						  &m_HookHitscan,
