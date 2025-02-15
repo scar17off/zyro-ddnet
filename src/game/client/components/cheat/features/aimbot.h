@@ -22,8 +22,11 @@ public:
     int GetCurrentTarget() const { return m_CurrentTarget; }
     void ResetTarget() { m_CurrentTarget = -1; }
 
+    void SetMousePosition(vec2 Position);
+
 private:
     int m_CurrentTarget = -1;
+    vec2 m_LastAimPos;
 };
 
 #endif

@@ -9,7 +9,7 @@ public:
     virtual int Sizeof() const override { return sizeof(*this); }
     virtual void OnRender() override;
 
-    void SetMousePosition(vec2 Position);
+    void SetMousePosition(vec2 Position, bool Silent = false);
 
 private:
 };

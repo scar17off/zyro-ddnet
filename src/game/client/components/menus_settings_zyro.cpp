@@ -155,6 +155,12 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		if(DoButton_CheckBox(pConfig->m_pEnabled, Localize("aim"), *pConfig->m_pEnabled, &Button))
 			*pConfig->m_pEnabled ^= 1;
 
+		// Silent
+		Right.VSplitLeft(5.0f, nullptr, &Right);
+		Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+		if(DoButton_CheckBox(&g_Config.m_ZrAimbotSilent, Localize("silent"), g_Config.m_ZrAimbotSilent, &Button))
+			g_Config.m_ZrAimbotSilent ^= 1;
+
 		// Draw FOV
 		Right.VSplitLeft(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ZrAimbotDrawFov, "", g_Config.m_ZrAimbotDrawFov, &Button))
@@ -163,16 +169,28 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		// Global FOV slider
 		Right.VSplitLeft(5.0f, nullptr, &Right);
 		Right.VSplitLeft(SliderWidth, &Button, &Right);
-		Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Button, Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
+		Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotFoV, &g_Config.m_ZrAimbotFoV, &Button, 
+			Localize("fov"), 1, 360, &CUi::ms_LinearScrollbarScale, 
+			CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "°");
 
 		// Aimbot mode dropdown
 		Right.VSplitLeft(20.0f, nullptr, &Right);
 		Right.VSplitLeft(80.0f, &Button, &Right);
-		const char *apAimbotModes[] = {"Plain", "Silent"};
+		const char *apAimbotModes[] = {"Plain", "Smooth"};
 		static CUi::SDropDownState s_AimbotModeDropDownState;
 		static CScrollRegion s_AimbotModeDropDownScrollRegion;
 		s_AimbotModeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_AimbotModeDropDownScrollRegion;
 		g_Config.m_ZrAimbotMode = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotMode, apAimbotModes, std::size(apAimbotModes), s_AimbotModeDropDownState);
+
+		// Show smooth factor slider if smooth mode is selected
+		if(g_Config.m_ZrAimbotMode == 1)
+		{
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(SliderWidth, &Button, &Right);
+			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotSmooth, &g_Config.m_ZrAimbotSmooth, &Button, 
+				Localize("smooth"), 1, 100, &CUi::ms_LinearScrollbarScale,
+				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+		}
 
 		// Accuracy settings for specific weapons
 		if(WeaponId == WEAPON_TAB_HOOK) // Hook
@@ -227,7 +245,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 
 				// Path selection dropdown
 				Right.VSplitLeft(20.0f, nullptr, &Right);
-				Right.VSplitLeft(120.0f, &Button, &Right);
+				Right.VSplitLeft(80.0f, &Button, &Right);
 				const char *apBouncePaths[] = {"closest", "furthest", "random"};
 				static CUi::SDropDownState s_BouncePathDropDownState;
 				static CScrollRegion s_BouncePathDropDownScrollRegion;

@@ -750,7 +750,9 @@ MACRO_CONFIG_INT(ClVideoRecorderFPS, cl_video_recorder_fps, 60, 1, 1000, CFGFLAG
 MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot enabled")
 MACRO_CONFIG_INT(ZrAimbotDrawFov, zr_draw_fov, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Draw fov")
 MACRO_CONFIG_INT(ZrAimbotFovWidth, zr_aimbot_fov_width, 1, 1, 5, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Fov width")
-MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=plain, 1=silent)")
+MACRO_CONFIG_INT(ZrAimbotSilent, zr_aimbot_silent, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Use silent aimbot")
+MACRO_CONFIG_INT(ZrAimbotSmooth, zr_aimbot_smooth, 10, 1, 100, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot smooth factor")
+MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=plain, 1=smooth)")
 MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot field of view")
 
 // Weapon-specific accuracy settings

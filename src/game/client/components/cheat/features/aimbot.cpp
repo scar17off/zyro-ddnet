@@ -158,3 +158,25 @@ const WeaponConfig* CAimbot::GetWeaponConfig(int Weapon) const
         default: return &s_aWeaponConfigs[6]; // Hook
     }
 }
+
+void CAimbot::SetMousePosition(vec2 Position)
+{
+    if(g_Config.m_ZrAimbotMode == 1) // Smooth mode
+    {
+        // Get current aim direction
+        vec2 CurrentAim = vec2(
+            m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_TargetX,
+            m_pClient->m_Controls.m_aInputData[g_Config.m_ClDummy].m_TargetY
+        );
+        
+        // Calculate smooth factor (higher = smoother)
+        float SmoothFactor = g_Config.m_ZrAimbotSmooth / 10.0f;
+        
+        // Interpolate between current and target aim
+        Position = mix(Position, CurrentAim, 1.0f - 1.0f/SmoothFactor);
+    }
+    // Mode 0 is plain, no smoothing applied
+
+    m_LastAimPos = Position;
+    m_pClient->m_Cheat.SetMousePosition(Position, g_Config.m_ZrAimbotSilent);
+}

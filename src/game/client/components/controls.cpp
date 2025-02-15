@@ -393,7 +393,7 @@ int CControls::SnapInput(int *pData)
 				// Only set aim position if we found a valid hit
 				if(length(AimPosition) > 0.0f)
 				{
-					m_pClient->m_Cheat.SetMousePosition(AimPosition);
+					m_pClient->m_Aimbot.SetMousePosition(AimPosition);
 				}
 			}
 		}
