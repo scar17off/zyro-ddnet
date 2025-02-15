@@ -237,7 +237,9 @@ void CFlowFieldPathfinder::GenerateFlowField()
             if(newDist < m_FlowField[ny][nx].distance)
             {
                 m_FlowField[ny][nx].distance = newDist;
-                m_FlowField[ny][nx].direction = normalize(pos - neighbor);
+                // here if we want to reverse the direction because we want to move towards the finish tile
+                // m_FlowField[ny][nx].direction = normalize(neighbor - pos); // from player to finish tile
+                m_FlowField[ny][nx].direction = normalize(pos - neighbor); // from finish tile to player
                 queue.push({newDist, neighbor});
             }
         }
