@@ -197,61 +197,74 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		{
 			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+
+			// Accuracy
 			Row.VSplitLeft(SliderWidth, &Button, &Right);
 			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotHookAccuracy, &g_Config.m_ZrAimbotHookAccuracy, &Button,
 				Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale,
 				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
 		}
+		else if(WeaponId == WEAPON_GRENADE)
+		{
+			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+			
+			// Accuracy slider
+			Row.VSplitLeft(SliderWidth, &Button, &Right);
+			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotGrenadeAccuracy, &g_Config.m_ZrAimbotGrenadeAccuracy, &Button,
+				Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale,
+				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+
+			// Splash checkbox
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(60.0f, &Button, &Right);
+			if(DoButton_CheckBox(&g_Config.m_ZrAimbotGrenadeSplash, Localize("splash"), g_Config.m_ZrAimbotGrenadeSplash, &Button))
+				g_Config.m_ZrAimbotGrenadeSplash ^= 1;
+
+			// Path selection dropdown
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(80.0f, &Button, &Right);
+			const char *apGrenadePaths[] = {"closest", "furthest", "random"};
+			static CUi::SDropDownState s_GrenadePathDropDownState;
+			static CScrollRegion s_GrenadePathDropDownScrollRegion;
+			s_GrenadePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_GrenadePathDropDownScrollRegion;
+			g_Config.m_ZrAimbotGrenadePath = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotGrenadePath, apGrenadePaths, std::size(apGrenadePaths), s_GrenadePathDropDownState);
+
+			// Length selection dropdown
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(80.0f, &Button, &Right);
+			const char *apGrenadeLengths[] = {"shortest", "longest"};
+			static CUi::SDropDownState s_GrenadeLengthDropDownState;
+			static CScrollRegion s_GrenadeLengthDropDownScrollRegion;
+			s_GrenadeLengthDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_GrenadeLengthDropDownScrollRegion;
+			g_Config.m_ZrAimbotGrenadeLength = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotGrenadeLength, apGrenadeLengths, std::size(apGrenadeLengths), s_GrenadeLengthDropDownState);
+		}
 		else if(WeaponId == WEAPON_LASER)
 		{
 			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-
-			// Accuracy settings
+			
+			// Accuracy slider
 			Row.VSplitLeft(SliderWidth, &Button, &Right);
 			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserAccuracy, &g_Config.m_ZrAimbotLaserAccuracy, &Button,
 				Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale,
 				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
 
-			// Bounce settings
-			// Bounce
-			SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
-			SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-			Row.VSplitLeft(CheckboxWidth, &Button, &Right);
-			if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserUseBounce, Localize("bounce"), g_Config.m_ZrAimbotLaserUseBounce, &Button))
-				g_Config.m_ZrAimbotLaserUseBounce ^= 1;
+			// Bounce count slider
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(SliderWidth, &Button, &Right);
+			Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounces, &g_Config.m_ZrAimbotLaserBounces, &Button,
+				Localize("bounces"), 0, 10, &CUi::ms_LinearScrollbarScale,
+				CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
 
-			// if(g_Config.m_ZrAimbotLaserUseBounce)
-			{
-				// Bounce only
-				Right.VSplitLeft(CheckboxWidth + 20.0f, &Button, &Right);
-				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserBounceOnly, Localize("bounce only"), g_Config.m_ZrAimbotLaserBounceOnly, &Button))
-					g_Config.m_ZrAimbotLaserBounceOnly ^= 1;
-				
-				// Prediction
-				Right.VSplitLeft(CheckboxWidth, &Button, &Right);
-				if(DoButton_CheckBox(&g_Config.m_ZrAimbotLaserPredict, Localize("predict"), g_Config.m_ZrAimbotLaserPredict, &Button))
-					g_Config.m_ZrAimbotLaserPredict ^= 1;
-
-				// Second row
-				SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
-				SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
-
-				// Bounce count slider
-				Row.VSplitLeft(SliderWidth, &Button, &Right);
-				Ui()->DoScrollbarOption(&g_Config.m_ZrAimbotLaserBounceCount, &g_Config.m_ZrAimbotLaserBounceCount, &Button,
-					Localize("bounce count"), 1, 10, &CUi::ms_LinearScrollbarScale,
-					CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
-
-				// Path selection dropdown
-				Right.VSplitLeft(20.0f, nullptr, &Right);
-				Right.VSplitLeft(80.0f, &Button, &Right);
-				const char *apBouncePaths[] = {"closest", "furthest", "random"};
-				static CUi::SDropDownState s_BouncePathDropDownState;
-				static CScrollRegion s_BouncePathDropDownScrollRegion;
-				s_BouncePathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_BouncePathDropDownScrollRegion;
-				g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotLaserBouncePath, apBouncePaths, std::size(apBouncePaths), s_BouncePathDropDownState);
-			}
+			// Path selection dropdown
+			Right.VSplitLeft(20.0f, nullptr, &Right);
+			Right.VSplitLeft(80.0f, &Button, &Right);
+			const char *apLaserPaths[] = {"closest", "furthest", "random"};
+			static CUi::SDropDownState s_LaserPathDropDownState;
+			static CScrollRegion s_LaserPathDropDownScrollRegion;
+			s_LaserPathDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_LaserPathDropDownScrollRegion;
+			g_Config.m_ZrAimbotLaserBouncePath = Ui()->DoDropDown(&Button, g_Config.m_ZrAimbotLaserBouncePath, apLaserPaths, std::size(apLaserPaths), s_LaserPathDropDownState);
 		}
 	}
 
@@ -279,6 +292,16 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrFastFire, Localize("ff"), g_Config.m_ZrFastFire, &Button))
 		g_Config.m_ZrFastFire ^= 1;
+	
+	// Debug
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrDebug, Localize("debug"), g_Config.m_ZrDebug, &Button))
+		g_Config.m_ZrDebug ^= 1;
+	
+	// Debug prediction
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrDebugPrediction, Localize("debug pred"), g_Config.m_ZrDebugPrediction, &Button))
+		g_Config.m_ZrDebugPrediction ^= 1;
 
 	// Balance bot settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);

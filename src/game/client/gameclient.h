@@ -50,7 +50,7 @@
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
-
+#include "components/cheat/prediction/grenade_prediction.h"
 #include "components/hud.h"
 #include "components/infomessages.h"
 #include "components/items.h"
@@ -166,6 +166,7 @@ public:
 	CHookPrediction m_HookPrediction;
 	CHookHitscan m_HookHitscan;
 	CLaserPrediction m_LaserPrediction;
+	CGrenadePrediction m_GrenadePrediction;
 	
 	CHud m_Hud;
 	CDebugHud m_DebugHud;

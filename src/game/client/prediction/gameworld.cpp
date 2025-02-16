@@ -130,7 +130,7 @@ void CGameWorld::RemoveEntity(CEntity *pEnt)
 
 	// remove
 	if(pEnt->m_pPrevTypeEntity)
-		pEnt->m_pPrevTypeEntity->m_pNextTypeEntity = pEnt->m_pNextTypeEntity;
+ 		pEnt->m_pPrevTypeEntity->m_pNextTypeEntity = pEnt->m_pNextTypeEntity;
 	else
 		m_apFirstEntityTypes[pEnt->m_ObjType] = pEnt->m_pNextTypeEntity;
 	if(pEnt->m_pNextTypeEntity)

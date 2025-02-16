@@ -131,39 +131,61 @@ void CLaserPrediction::OnInit()
     m_PredictionWorld.m_LocalClientId = m_pClient->m_Snap.m_LocalClientId;
 }
 
-void CLaserPrediction::ScanAngles(float StartAngle, float EndAngle, int Steps, int TargetID, std::vector<std::pair<float, float>> &ValidAngles)
+void CLaserPrediction::ScanAngles(float StartAngle, float EndAngle, int Steps, int TargetID, 
+    std::vector<std::pair<float, float>> &ValidAngles)
 {
     float AngleStep = (EndAngle - StartAngle) / Steps;
     std::vector<std::pair<float, float>> LocalValidAngles;
+    std::vector<PathVisualization> LocalPaths;
 
     for(int i = 0; i <= Steps; i++)
     {
         float CurrentAngle = StartAngle + i * AngleStep;
         auto Path = PredictLaserBounce(CurrentAngle);
-        if(CheckLaserHit(Path, TargetID))
+        bool Valid = CheckLaserHit(Path, TargetID);
+
+        // Convert Path to PredictionPoints
+        std::vector<PredictionPoint> Points;
+        for(size_t j = 0; j < Path.size(); j++)
+        {
+            Points.push_back({Path[j], j > 0 && j < Path.size()-1});
+        }
+
+        // Store path for visualization
+        LocalPaths.push_back({Points, Valid});
+
+        if(Valid)
         {
             LocalValidAngles.emplace_back(CurrentAngle, Path.size());
         }
     }
 
-    // Thread-safe update of valid angles
+    // Thread safe update of visualization paths and valid angles
+    std::lock_guard<std::mutex> Lock(m_AnglesMutex);
+    if(!LocalPaths.empty())
+    {
+        m_VisualizePaths.insert(m_VisualizePaths.end(), LocalPaths.begin(), LocalPaths.end());
+    }
     if(!LocalValidAngles.empty())
     {
-        std::lock_guard<std::mutex> Lock(m_AnglesMutex);
         ValidAngles.insert(ValidAngles.end(), LocalValidAngles.begin(), LocalValidAngles.end());
     }
 }
 
 vec2 CLaserPrediction::PredictLaser(int TargetID, float CurrentAngle, float FOV)
 {
+    // Clear visualization paths before new prediction
+    m_VisualizePaths.clear();
+
     // Convert FOV to radians
     float FovRadians = (FOV * pi) / 180.0f;
     float StartAngle = CurrentAngle - FovRadians / 2;
     float EndAngle = CurrentAngle + FovRadians / 2;
 
-    // Number of threads to use (hardcoded for now)
+    // Number of threads to use
     const int NUM_THREADS = 4;
-    const int STEPS_PER_THREAD = 45; // Should be based on desired precision, try to customize it later
+    const int TOTAL_STEPS = clamp(g_Config.m_ZrAimbotLaserAccuracy, 1, 200);
+    const int STEPS_PER_THREAD = TOTAL_STEPS / NUM_THREADS;
 
     std::vector<std::pair<float, float>> ValidAngles;
     std::vector<std::shared_ptr<CScanJob>> Jobs;
@@ -247,5 +269,64 @@ vec2 CLaserPrediction::PredictLaser(int TargetID, float CurrentAngle, float FOV)
 
 void CLaserPrediction::OnReset()
 {
-    m_PredictionWorld.Clear();
+    m_LastPredictedPath.clear();
+    m_VisualizePaths.clear();
+}
+
+void CLaserPrediction::OnRender()
+{
+    // Only render if we have a local character and they're using laser and debug prediction is enabled
+    if(!m_pClient->m_Snap.m_pLocalCharacter || 
+       m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_LASER ||
+       !g_Config.m_ZrDebugPrediction)
+    {
+        std::lock_guard<std::mutex> Lock(m_AnglesMutex);
+        m_VisualizePaths.clear();
+        return;
+    }
+
+    std::vector<PathVisualization> PathsCopy;
+    {
+        std::lock_guard<std::mutex> Lock(m_AnglesMutex);
+        if(m_VisualizePaths.empty())
+            return;
+        PathsCopy = m_VisualizePaths;
+    }
+
+    // Save screen mapping
+    float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+    Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+    // Map screen to interface coordinates
+    RenderTools()->MapScreenToInterface(m_pClient->m_Camera.m_Center.x, m_pClient->m_Camera.m_Center.y);
+
+    // Render all paths
+    Graphics()->TextureClear();
+    Graphics()->LinesBegin();
+    
+    for(const auto &Path : PathsCopy)
+    {
+        if(Path.m_Points.size() < 2)
+            continue;
+
+        ColorRGBA Color = Path.m_Valid ? 
+            ColorRGBA(0.0f, 1.0f, 0.0f, 0.3f) :
+            ColorRGBA(1.0f, 0.0f, 0.0f, 0.3f);
+
+        const auto &Points = Path.m_Points;
+        for(size_t i = 0; i < Points.size() - 1; i++)
+        {
+            Graphics()->SetColor(Color);
+            IGraphics::CLineItem Line(
+                Points[i].m_Pos.x, Points[i].m_Pos.y,
+                Points[i+1].m_Pos.x, Points[i+1].m_Pos.y
+            );
+            Graphics()->LinesDraw(&Line, 1);
+        }
+    }
+    
+    Graphics()->LinesEnd();
+    
+    // Restore screen mapping
+    Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
 }

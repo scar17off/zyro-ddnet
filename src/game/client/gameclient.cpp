@@ -67,6 +67,7 @@
 #include "components/cheat/hitscan/hook_hitscan.h"
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
+#include "components/cheat/prediction/grenade_prediction.h"
 
 #include "components/hud.h"
 #include "components/infomessages.h"
@@ -167,7 +168,7 @@ void CGameClient::OnConsoleInit()
 						  &m_HookPrediction,
 						  &m_HookHitscan,
 						  &m_LaserPrediction,
-
+						  &m_GrenadePrediction,
 					      &m_Hud,
 					      &m_Spectator,
 					      &m_Emoticon,

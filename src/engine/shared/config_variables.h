@@ -748,22 +748,28 @@ MACRO_CONFIG_INT(ClVideoRecorderFPS, cl_video_recorder_fps, 60, 1, 1000, CFGFLAG
  */
 
 MACRO_CONFIG_INT(ZrAimbot, zr_aimbot, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot enabled")
+MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot field of view")
 MACRO_CONFIG_INT(ZrAimbotDrawFov, zr_draw_fov, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Draw fov")
 MACRO_CONFIG_INT(ZrAimbotFovWidth, zr_aimbot_fov_width, 1, 1, 5, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Fov width")
 MACRO_CONFIG_INT(ZrAimbotSilent, zr_aimbot_silent, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Use silent aimbot")
 MACRO_CONFIG_INT(ZrAimbotSmooth, zr_aimbot_smooth, 10, 1, 100, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot smooth factor")
 MACRO_CONFIG_INT(ZrAimbotMode, zr_aimbot_mode, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot mode (0=plain, 1=smooth)")
-MACRO_CONFIG_INT(ZrAimbotFoV, zr_aimbot_fov, 30, 1, 360, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Global aimbot field of view")
 
 // Weapon-specific accuracy settings
 MACRO_CONFIG_INT(ZrAimbotHookAccuracy, zr_aimbot_hook_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Hook aimbot accuracy")
+MACRO_CONFIG_INT(ZrAimbotGrenadeAccuracy, zr_aimbot_grenade_accuracy, 90, 1, 200, CFGFLAG_CLIENT, "Grenade prediction accuracy (higher = more accurate)")
 MACRO_CONFIG_INT(ZrAimbotLaserAccuracy, zr_aimbot_laser_accuracy, 100, 1, 200, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Laser aimbot accuracy")
+
+// Grenade
+MACRO_CONFIG_INT(ZrAimbotGrenadeLength, zr_aimbot_grenade_length, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot grenade length (0=shortest, 1=longest)")
+MACRO_CONFIG_INT(ZrAimbotGrenadePath, zr_aimbot_grenade_path, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot grenade path (0=closest, 1=furthest, 2=random)")
+MACRO_CONFIG_INT(ZrAimbotGrenadeSplash, zr_aimbot_grenade_splash, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot grenade splash")
 
 // Laser
 MACRO_CONFIG_INT(ZrAimbotLaserPredict, zr_aimbot_laser_predict, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser predict")
 MACRO_CONFIG_INT(ZrAimbotLaserBounceOnly, zr_aimbot_laser_bounce_only, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce only")
 MACRO_CONFIG_INT(ZrAimbotLaserUseBounce, zr_aimbot_laser_use_bounce, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser use bounce")
-MACRO_CONFIG_INT(ZrAimbotLaserBounceCount, zr_aimbot_laser_bounce_count, 1, 1, 10, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce count")
+MACRO_CONFIG_INT(ZrAimbotLaserBounces, zr_aimbot_laser_bounces, 1, 1, 10, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce count")
 MACRO_CONFIG_INT(ZrAimbotLaserBouncePath, zr_aimbot_laser_bounce_path, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce path (0=closest, 1=furthest, 2=random)")
 
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
@@ -788,6 +794,7 @@ WEAPON_CONFIG(Ninja)
 MACRO_CONFIG_INT(ZrPlrBox, zr_esp_player_box, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show box ESP on players")
 MACRO_CONFIG_INT(ZrPlrTracer, zr_plr_tracer, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show tracers to players")
 MACRO_CONFIG_INT(ZrSpecList, zr_spec_list, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show spectator list")
+MACRO_CONFIG_INT(ZrDebugPrediction, zr_debug_prediction, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Debug prediction")
 
 // Misc settings
 MACRO_CONFIG_INT(ZrDebug, zr_debug, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Debug pathfinder")

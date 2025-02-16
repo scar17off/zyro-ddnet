@@ -384,6 +384,14 @@ int CControls::SnapInput(int *pData)
 						AimPosition = m_pClient->m_LaserPrediction.PredictLaser(Target, CurrentAngle, g_Config.m_ZrAimbotFoV);
 					}
 				}
+				else if(CurrentWeapon == WEAPON_GRENADE)
+				{
+					// Get current aim angle and FOV
+					float CurrentAngle = angle(vec2(m_aInputData[g_Config.m_ClDummy].m_TargetX, m_aInputData[g_Config.m_ClDummy].m_TargetY));
+
+					// Use grenade prediction with FOV
+					AimPosition = m_pClient->m_GrenadePrediction.PredictGrenade(Target, CurrentAngle, g_Config.m_ZrAimbotFoV);
+				}
 				else
 				{
 					// Use regular edge scan for other weapons

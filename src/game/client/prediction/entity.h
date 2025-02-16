@@ -14,6 +14,7 @@ class CEntity
 	MACRO_ALLOC_HEAP()
 
 private:
+	friend class CGrenadePrediction;
 	friend CGameWorld; // entity list handling
 	CEntity *m_pPrevTypeEntity;
 	CEntity *m_pNextTypeEntity;
