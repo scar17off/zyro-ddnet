@@ -773,7 +773,7 @@ MACRO_CONFIG_INT(ZrAimbotLaserBounces, zr_aimbot_laser_bounces, 1, 1, 10, CFGFLA
 MACRO_CONFIG_INT(ZrAimbotLaserBouncePath, zr_aimbot_laser_bounce_path, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Aimbot laser bounce path (0=closest, 1=furthest, 2=random)")
 
 MACRO_CONFIG_INT(ZrDiscordRPC, zr_discord_rpc, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord RPC enabled")
-MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 6, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro)")
+MACRO_CONFIG_INT(ZrDiscord, zr_discord, 0, 0, 6, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Discord presence (0=DDNet, 1=Tater, 2=CFF, 3=KRX, 4=Zyro, 5=Cactus, 6=Aiodob)")
 
 // Weapon enable/disable config
 #define WEAPON_CONFIG(WEAPON) \
