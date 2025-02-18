@@ -8,7 +8,7 @@ float CAimbot::GetWeaponReach(int Weapon)
     switch(Weapon)
     {
         case WEAPON_HAMMER:
-            return 20.0f;
+            return 63.0f;
         case WEAPON_GUN:
 		    return m_pClient->GetTuning(0)->m_GunSpeed * m_pClient->GetTuning(0)->m_GunLifetime;
         case WEAPON_SHOTGUN:
