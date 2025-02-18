@@ -359,7 +359,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	static CUi::SDropDownState s_DiscordDropDownState;
 	static CScrollRegion s_DiscordDropDownScrollRegion;
 	s_DiscordDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_DiscordDropDownScrollRegion;
-	g_Config.m_ZrDiscord = Ui()->DoDropDown(&Button, g_Config.m_ZrDiscord, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
+	g_Config.m_ZrDiscordId = Ui()->DoDropDown(&Button, g_Config.m_ZrDiscordId, apDiscordApps, std::size(apDiscordApps), s_DiscordDropDownState);
 
 	// Mapbot settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
