@@ -24,7 +24,6 @@ Release
 SAN.*
 _CPack_Packages/
 build.ninja
-checksummed_*
 cmake_install.cmake
 debug
 gmock.pc

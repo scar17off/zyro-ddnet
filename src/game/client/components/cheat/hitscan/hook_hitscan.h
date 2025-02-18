@@ -8,10 +8,22 @@
 #include <mutex>
 #include <memory>
 
+struct HookPoint {
+    vec2 m_Pos;
+    bool m_IsHit;
+};
+
+struct HookPathVisualization {
+    std::vector<HookPoint> m_Points;
+    bool m_Valid;
+};
+
 class CHookHitscan : public CComponent
 {
 public:
     virtual int Sizeof() const override { return sizeof(*this); }
+    virtual void OnRender() override;
+    virtual void OnReset() override;
 
     vec2 EdgeScan(int ClientId);
     bool HitScanHook(vec2 initPos, vec2 targetPos, vec2 scanDir);
@@ -53,6 +65,8 @@ private:
     bool IntersectCharacter(vec2 hookPos, vec2 targetPos, vec2 &newPos);
 
     std::mutex m_ScanMutex;
+    std::vector<HookPathVisualization> m_VisualizePaths;
+    std::mutex m_VisualizeMutex;
 };
 
 #endif

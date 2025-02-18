@@ -3,6 +3,8 @@
 #include <game/client/prediction/entities/laser.h>
 #include <game/client/gameclient.h>
 #include <engine/engine.h>
+#include <thread>
+#include <chrono>
 
 std::vector<vec2> CLaserPrediction::PredictLaserBounce(float Angle)
 {

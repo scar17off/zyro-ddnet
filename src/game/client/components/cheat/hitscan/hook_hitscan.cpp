@@ -1,6 +1,8 @@
 #include "hook_hitscan.h"
 #include "game/client/gameclient.h"
 #include <engine/engine.h>
+#include <thread>
+#include <chrono>
 
 void CHookHitscan::ScanAngles(float StartAngle, float EndAngle, int Steps, int ClientId, std::vector<vec2> &ValidPoints)
 {
@@ -9,6 +11,7 @@ void CHookHitscan::ScanAngles(float StartAngle, float EndAngle, int Steps, int C
     float AngleStep = (EndAngle - StartAngle) / Steps;
 
     std::vector<vec2> LocalValidPoints;
+    std::vector<HookPathVisualization> LocalPaths;
 
     for(int i = 0; i <= Steps; i++)
     {
@@ -16,16 +19,117 @@ void CHookHitscan::ScanAngles(float StartAngle, float EndAngle, int Steps, int C
         vec2 Direction = direction(CurrentAngle);
         vec2 HookDir = Direction * m_pClient->m_aTuning->m_HookLength;
         
-        if(HitScanHook(myPos, targetPos, HookDir))
+        // Store hook path for visualization
+        std::vector<HookPoint> Points;
+        Points.push_back({myPos, false}); // Starting point
+        
+        bool Valid = HitScanHook(myPos, targetPos, HookDir);
+        Points.push_back({myPos + HookDir, Valid}); // End point
+        
+        LocalPaths.push_back({Points, Valid});
+        
+        if(Valid)
         {
             std::lock_guard<std::mutex> Lock(m_ScanMutex);
             ValidPoints.push_back(HookDir);
         }
     }
+
+    // Update visualization paths
+    std::lock_guard<std::mutex> Lock(m_VisualizeMutex);
+    if(!LocalPaths.empty())
+    {
+        m_VisualizePaths.insert(m_VisualizePaths.end(), LocalPaths.begin(), LocalPaths.end());
+    }
+}
+
+void CHookHitscan::OnRender()
+{
+    // Only render if we have a local character and debug prediction is enabled
+    if(!m_pClient->m_Snap.m_pLocalCharacter || !g_Config.m_ZrDebugPrediction)
+    {
+        std::lock_guard<std::mutex> Lock(m_VisualizeMutex);
+        m_VisualizePaths.clear();
+        return;
+    }
+
+    std::vector<HookPathVisualization> PathsCopy;
+    {
+        std::lock_guard<std::mutex> Lock(m_VisualizeMutex);
+        if(m_VisualizePaths.empty())
+            return;
+        PathsCopy = m_VisualizePaths;
+    }
+
+    // Save screen mapping
+    float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+    Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+    // Map screen to interface coordinates
+    RenderTools()->MapScreenToInterface(m_pClient->m_Camera.m_Center.x, m_pClient->m_Camera.m_Center.y);
+
+    // Render all paths
+    Graphics()->TextureClear();
+    Graphics()->LinesBegin();
+    
+    for(const auto &Path : PathsCopy)
+    {
+        if(Path.m_Points.size() < 2)
+            continue;
+
+        ColorRGBA Color = Path.m_Valid ? 
+            ColorRGBA(0.0f, 1.0f, 0.0f, 0.3f) :
+            ColorRGBA(1.0f, 0.0f, 0.0f, 0.3f);
+
+        const auto &Points = Path.m_Points;
+        for(size_t i = 0; i < Points.size() - 1; i++)
+        {
+            vec2 Start = Points[i].m_Pos;
+            vec2 End = Points[i+1].m_Pos;
+            
+            // Check for wall collision
+            vec2 CollisionPoint;
+            vec2 BeforeCollision;
+            if(Collision()->IntersectLine(Start, End, &CollisionPoint, &BeforeCollision))
+            {
+                // Draw line only until collision point
+                Graphics()->SetColor(Color);
+                IGraphics::CLineItem Line(
+                    Start.x, Start.y,
+                    CollisionPoint.x, CollisionPoint.y
+                );
+                Graphics()->LinesDraw(&Line, 1);
+                break; // Stop drawing this path after hitting a wall
+            }
+            else
+            {
+                // No collision, draw full line segment
+                Graphics()->SetColor(Color);
+                IGraphics::CLineItem Line(
+                    Start.x, Start.y,
+                    End.x, End.y
+                );
+                Graphics()->LinesDraw(&Line, 1);
+            }
+        }
+    }
+    
+    Graphics()->LinesEnd();
+    
+    // Restore screen mapping
+    Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CHookHitscan::OnReset()
+{
+    m_VisualizePaths.clear();
 }
 
 vec2 CHookHitscan::EdgeScan(int ClientId)
 {
+    // Clear visualization paths before new scan
+    m_VisualizePaths.clear();
+    
     // Try direct hook first
     vec2 myPos = m_pClient->m_PredictedChar.m_Pos;
     vec2 targetPos = m_pClient->m_aClients[ClientId].m_Predicted.m_Pos;
@@ -48,7 +152,8 @@ vec2 CHookHitscan::EdgeScan(int ClientId)
 
     // Setup multithreaded scan
     const int NUM_THREADS = 4;
-    const int STEPS_PER_THREAD = 45; // Adjust based on accuracy needs
+    const int TOTAL_STEPS = clamp(g_Config.m_ZrAimbotHookAccuracy, 1, 200);
+    const int STEPS_PER_THREAD = TOTAL_STEPS / NUM_THREADS;
 
     std::vector<vec2> ValidPoints;
     std::vector<std::shared_ptr<CScanJob>> Jobs;
