@@ -189,3 +189,33 @@ void CCheat::OnRender()
 
 	RenderDebug();
 }
+
+void CCheat::OnConsoleInit()
+{
+	Console()->Register("zr_unload", "?s[password]", CFGFLAG_CLIENT, &CCheat::ConToggle, this, "Toggle cheat");
+	Console()->Register("zr_setpass", "s[password]", CFGFLAG_CLIENT, &CCheat::ConSetPass, this, "Set unload password");
+}
+
+void CCheat::ConToggle(IConsole::IResult *pResult, void *pUserData)
+{
+	CCheat *pCheat = (CCheat *)pUserData;
+	
+	if(pResult->NumArguments() == 0 || str_comp(pResult->GetString(0), pCheat->m_UnloadPassword.c_str()) != 0)
+	{
+		pCheat->m_pClient->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chatresp", "No such command: zr_unload.");
+		return;
+	} else if(pResult->NumArguments() == 1 && str_comp(pResult->GetString(0), pCheat->m_UnloadPassword.c_str()) == 0) {
+		// This prevents the game from crashing since page ID 10 would be invalid
+		g_Config.m_UiSettingsPage = 9; // SETTINGS_ASSETS
+	}
+
+	pCheat->m_Active = !pCheat->m_Active;
+}
+
+void CCheat::ConSetPass(IConsole::IResult *pResult, void *pUserData)
+{
+	CCheat *pCheat = (CCheat *)pUserData;
+
+	pCheat->m_pClient->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chatresp", "No such command: zr_setpass.");
+	pCheat->m_UnloadPassword = pResult->GetString(0);
+}

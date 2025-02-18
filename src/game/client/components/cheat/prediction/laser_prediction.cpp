@@ -280,7 +280,7 @@ void CLaserPrediction::OnRender()
     // Only render if we have a local character and they're using laser and debug prediction is enabled
     if(!m_pClient->m_Snap.m_pLocalCharacter || 
        m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_LASER ||
-       !g_Config.m_ZrDebugPrediction)
+       !g_Config.m_ZrDebugPrediction || !m_pClient->m_Cheat.m_Active)
     {
         std::lock_guard<std::mutex> Lock(m_AnglesMutex);
         m_VisualizePaths.clear();

@@ -1940,6 +1940,9 @@ void CMenus::RenderSettings(CUIRect MainView)
 
 	for(int i = 0; i < SETTINGS_LENGTH; i++)
 	{
+		if(i == SETTINGS_ZYRO && !m_pClient->m_Cheat.m_Active)
+			continue;
+
 		TabBar.HSplitTop(10.0f, nullptr, &TabBar);
 		TabBar.HSplitTop(26.0f, &Button, &TabBar);
 		if(DoButton_MenuTab(&s_aTabButtons[i], apTabs[i], g_Config.m_UiSettingsPage == i, &Button, IGraphics::CORNER_R, &m_aAnimatorsSettingsTab[i]))
@@ -1999,7 +2002,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 		GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_ASSETS);
 		RenderSettingsCustom(MainView);
 	}
-	else if(g_Config.m_UiSettingsPage == SETTINGS_ZYRO)
+	else if(g_Config.m_UiSettingsPage == SETTINGS_ZYRO && m_pClient->m_Cheat.m_Active)
 	{
 		GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_ZYRO);
 		RenderSettingsZyro(MainView);

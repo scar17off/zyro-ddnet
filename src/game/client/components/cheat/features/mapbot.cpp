@@ -43,7 +43,7 @@ void CMapBot::OnMapLoad()
 
 void CMapBot::OnRender()
 {
-    if(!g_Config.m_ZrMapBot)
+    if(!g_Config.m_ZrMapBot || !m_pClient->m_Cheat.m_Active)
         return;
        
     RenderPath();

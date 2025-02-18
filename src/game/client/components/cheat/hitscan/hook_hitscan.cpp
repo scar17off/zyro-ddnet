@@ -46,7 +46,7 @@ void CHookHitscan::ScanAngles(float StartAngle, float EndAngle, int Steps, int C
 void CHookHitscan::OnRender()
 {
     // Only render if we have a local character and debug prediction is enabled
-    if(!m_pClient->m_Snap.m_pLocalCharacter || !g_Config.m_ZrDebugPrediction)
+    if(!m_pClient->m_Snap.m_pLocalCharacter || !g_Config.m_ZrDebugPrediction || !m_pClient->m_Cheat.m_Active)
     {
         std::lock_guard<std::mutex> Lock(m_VisualizeMutex);
         m_VisualizePaths.clear();

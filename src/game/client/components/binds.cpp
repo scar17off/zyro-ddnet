@@ -301,7 +301,7 @@ void CBinds::SetDefaults()
 	Bind(KEY_P, "say /pause");
 
 	// Zyro
-	Bind(KEY_B, "zrbalance");
+	Bind(KEY_B, "zr_balance");
 
 	g_Config.m_ClDDRaceBindsSet = 0;
 	SetDDRaceBinds(false);

@@ -305,7 +305,7 @@ int CControls::SnapInput(int *pData)
 	}
 
 	// Cheat components
-	if(g_Config.m_ZrAimbot)
+	if(g_Config.m_ZrAimbot && m_pClient->m_Cheat.m_Active)
 	{
 		bool HookPressed = (m_aInputData[g_Config.m_ClDummy].m_Hook != 0) && (m_aLastData[g_Config.m_ClDummy].m_Hook == 0);
 		bool FirePressed = (m_aInputData[g_Config.m_ClDummy].m_Fire & 1) && !(m_aLastData[g_Config.m_ClDummy].m_Fire & 1);

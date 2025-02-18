@@ -107,7 +107,7 @@ std::optional<CBalanceBot::TargetInfo> CBalanceBot::FindTarget(const vec2& local
 // yes yes this is that easy to register a console command guys just don't forget to add it to the binds.cpp # CBinds::SetDefaults method
 void CBalanceBot::OnConsoleInit()
 {
-    Console()->Register("zrbalance", "", CFGFLAG_CLIENT, ConToggle, this, "Toggle balance bot");
+    Console()->Register("zr_balance", "", CFGFLAG_CLIENT, ConToggle, this, "Toggle balance bot");
 }
 
 void CBalanceBot::ConToggle(IConsole::IResult *pResult, void *pUserData)
@@ -118,7 +118,7 @@ void CBalanceBot::ConToggle(IConsole::IResult *pResult, void *pUserData)
 
 void CBalanceBot::Balance()
 {
-    if(!g_Config.m_ZrBalanceBot || !m_Active || !m_pClient->m_Snap.m_pLocalCharacter)
+    if(!g_Config.m_ZrBalanceBot || !m_Active || !m_pClient->m_Snap.m_pLocalCharacter || !m_pClient->m_Cheat.m_Active)
         return;
 
     struct PlayerState {

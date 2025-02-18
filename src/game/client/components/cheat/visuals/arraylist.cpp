@@ -115,7 +115,7 @@ void CArrayList::RenderFeature(float Y, const char* Name, const ColorRGBA& Color
 void CArrayList::OnRender()
 {
     // Only render if arraylist is enabled
-    if(!g_Config.m_ZrArrayList)
+    if(!g_Config.m_ZrArrayList || !m_pClient->m_Cheat.m_Active)
         return;
 
     auto Features = GetEnabledFeatures();

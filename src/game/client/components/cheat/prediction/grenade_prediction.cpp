@@ -366,7 +366,7 @@ void CGrenadePrediction::OnRender()
     // Only render if we have a local character and they're using grenade and debug prediction is enabled
     if(!m_pClient->m_Snap.m_pLocalCharacter || 
        m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_GRENADE ||
-       !g_Config.m_ZrDebugPrediction)
+       !g_Config.m_ZrDebugPrediction || !m_pClient->m_Cheat.m_Active)
     {
         m_VisualizePaths.clear();
         return;

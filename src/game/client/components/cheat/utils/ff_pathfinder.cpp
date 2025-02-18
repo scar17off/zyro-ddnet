@@ -378,7 +378,7 @@ void CFlowFieldPathfinder::RenderArrow(vec2 pos, vec2 dir, float size, ColorRGBA
 void CFlowFieldPathfinder::OnRender()
 {
     // Only render if we have valid map data
-    if(!m_pClient->m_Snap.m_pGameInfoObj || !m_pLayers || !m_pLayers->GameLayer())
+    if(!m_pClient->m_Snap.m_pGameInfoObj || !m_pLayers || !m_pLayers->GameLayer() || !m_pClient->m_Cheat.m_Active)
         return;
 
     if(!m_PathFound)

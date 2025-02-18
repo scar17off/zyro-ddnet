@@ -365,7 +365,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	// Path
-	Row.VSplitLeft(100.0f, &Button, &Right);
+	Row.VSplitLeft(30.0f, &Button, &Right);
 	static CButtonContainer s_PathButton;
 	if(DoButton_Menu(&s_PathButton, Localize("path"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
 	{
@@ -374,11 +374,23 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 
 	// Generate
 	Right.VSplitLeft(5.0f, nullptr, &Right);
-	Right.VSplitLeft(100.0f, &Button, &Right);
+	Right.VSplitLeft(60.0f, &Button, &Right);
 	static CButtonContainer s_GenerateButton;
 	if(DoButton_Menu(&s_GenerateButton, Localize("generate"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
 	{
 		m_pClient->m_MapBot.GeneratePath();
+	}
+
+	// Unload settings
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	Row.VSplitLeft(60.0f, &Button, &Right);
+	static CButtonContainer s_UnloadButton;
+	if(DoButton_Menu(&s_UnloadButton, Localize("unload"), 0, &Button, nullptr, IGraphics::CORNER_ALL, 5.0f))
+	{
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "zr_unload %s", m_pClient->m_Cheat.m_UnloadPassword.c_str());
+		m_pClient->Console()->ExecuteLine(aBuf);
 	}
 }
 
