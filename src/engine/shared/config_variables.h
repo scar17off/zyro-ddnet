@@ -811,3 +811,10 @@ MACRO_CONFIG_INT(ZrArrayListLine, zr_arraylist_line, 0, 0, 1, CFGFLAG_SAVE | CFG
 // Mapbot settings
 MACRO_CONFIG_INT(ZrMapBot, zr_mapbot, 0, 0, 1, CFGFLAG_CLIENT, "Enable map bot")
 MACRO_CONFIG_INT(ZrMapBotAccuracy, zr_mapbot_accuracy, 45, 1, 200, CFGFLAG_CLIENT, "Map bot angle step accuracy (1-200)")
+
+// Animation settings
+MACRO_CONFIG_INT(ZrAnim, zr_anim, 0, 0, 1, CFGFLAG_CLIENT, "Enable grenade animation")
+MACRO_CONFIG_INT(ZrAnimType, zr_anim_type, 0, 0, 18, CFGFLAG_CLIENT, "Animation type (0-18)")
+MACRO_CONFIG_INT(ZrAnimPoints, zr_anim_points, 20, 3, 100, CFGFLAG_CLIENT, "Number of points in animation")
+MACRO_CONFIG_INT(ZrAnimRadius, zr_anim_radius, 100, 10, 500, CFGFLAG_CLIENT, "Animation radius")
+MACRO_CONFIG_INT(ZrAnimSpeed, zr_anim_speed, 5, 1, 20, CFGFLAG_CLIENT, "Animation speed")

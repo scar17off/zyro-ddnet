@@ -2355,6 +2355,8 @@ if(CLIENT)
     components/cheat/utils/ff_pathfinder.h
     components/cheat/visuals.cpp
     components/cheat/visuals.h
+    components/cheat/visuals/animations.cpp
+    components/cheat/visuals/animations.h
     components/cheat/visuals/arraylist.cpp
     components/cheat/visuals/arraylist.h
     components/cheat/visuals/spectatorlist.cpp

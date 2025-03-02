@@ -392,6 +392,53 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		str_format(aBuf, sizeof(aBuf), "zr_unload %s", m_pClient->m_Cheat.m_UnloadPassword.c_str());
 		m_pClient->Console()->ExecuteLine(aBuf);
 	}
+
+	// Animation settings
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+
+	// Enable animation checkbox
+	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrAnim, Localize("animation"), g_Config.m_ZrAnim, &Button))
+		g_Config.m_ZrAnim ^= 1;
+
+	// Animation type dropdown
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(120.0f, &Button, &Right);
+	const char *apAnimTypes[] = {
+		"Circle", "Expanding Circle", "Wave", "Eight", "Triangle",
+		"Disk X", "Lemniscate", "Spiral", "Copy Disk", "Square",
+		"Top Bottom", "X", "Right Left", "Random TB", "Atom",
+		"Vertical Sector", "Horizontal Sector", "Rhombus", "Heart"
+	};
+	static CUi::SDropDownState s_AnimTypeDropDownState;
+	static CScrollRegion s_AnimTypeDropDownScrollRegion;
+	s_AnimTypeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_AnimTypeDropDownScrollRegion;
+	g_Config.m_ZrAnimType = Ui()->DoDropDown(&Button, g_Config.m_ZrAnimType, apAnimTypes, std::size(apAnimTypes), s_AnimTypeDropDownState);
+
+	// Second row - Sliders
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+
+	// Points slider
+	Row.VSplitLeft(SliderWidth, &Button, &Right);
+	Ui()->DoScrollbarOption(&g_Config.m_ZrAnimPoints, &g_Config.m_ZrAnimPoints, &Button,
+		Localize("points"), 3, 100, &CUi::ms_LinearScrollbarScale,
+		CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+
+	// Radius slider
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(SliderWidth, &Button, &Right);
+	Ui()->DoScrollbarOption(&g_Config.m_ZrAnimRadius, &g_Config.m_ZrAnimRadius, &Button,
+		Localize("radius"), 10, 500, &CUi::ms_LinearScrollbarScale,
+		CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+
+	// Speed slider
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(SliderWidth, &Button, &Right);
+	Ui()->DoScrollbarOption(&g_Config.m_ZrAnimSpeed, &g_Config.m_ZrAnimSpeed, &Button,
+		Localize("speed"), 1, 20, &CUi::ms_LinearScrollbarScale,
+		CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
 }
 
 void CMenus::RenderWeaponSection(CUIRect &WeaponsSection, int WeaponId, int TabId, const char *Label)

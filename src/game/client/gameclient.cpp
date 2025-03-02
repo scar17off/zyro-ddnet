@@ -59,6 +59,7 @@
 #include "components/cheat/cheat.h"
 #include "components/cheat/visuals.h"
 #include "components/cheat/visuals/spectatorlist.h"
+#include "components/cheat/visuals/animations.h"
 #include "components/cheat/visuals/arraylist.h"
 #include "components/cheat/features/aimbot.h"
 #include "components/cheat/features/balancebot.h"
@@ -157,6 +158,7 @@ void CGameClient::OnConsoleInit()
 						  &m_Cheat,
 						  
 						  &m_Visuals,
+						  &m_Animations,
 						  &m_SpectatorList,
 						  &m_ArrayList,
 
