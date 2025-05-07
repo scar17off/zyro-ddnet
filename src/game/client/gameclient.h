@@ -52,6 +52,7 @@
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
 #include "components/cheat/prediction/grenade_prediction.h"
+#include "components/cheat/gui.h"
 #include "components/hud.h"
 #include "components/infomessages.h"
 #include "components/items.h"
@@ -154,6 +155,7 @@ public:
 	CFlow m_Flow;
 
 	CCheat m_Cheat;
+	CGui m_Gui;
 
 	CVisuals m_Visuals;
 	CSpectatorList m_SpectatorList;

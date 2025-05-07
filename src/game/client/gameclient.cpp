@@ -69,6 +69,7 @@
 #include "components/cheat/prediction/hook_prediction.h"
 #include "components/cheat/prediction/laser_prediction.h"
 #include "components/cheat/prediction/grenade_prediction.h"
+#include "components/cheat/gui.h"
 
 #include "components/hud.h"
 #include "components/infomessages.h"
@@ -156,6 +157,7 @@ void CGameClient::OnConsoleInit()
 					      &m_DamageInd,
 
 						  &m_Cheat,
+						  &m_Gui,
 						  
 						  &m_Visuals,
 						  &m_Animations,

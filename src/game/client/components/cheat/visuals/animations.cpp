@@ -136,7 +136,7 @@ void CAnimations::RenderGrenades()
     Graphics()->GetScreen(Points, Points+1, Points+2, Points+3);
 
     // Map screen coordinates
-    RenderTools()->MapScreenToInterface(m_pClient->m_Camera.m_Center.x, m_pClient->m_Camera.m_Center.y);
+    RenderTools()->MapScreenToGroup(m_pClient->m_Camera.m_Center.x, m_pClient->m_Camera.m_Center.y, Layers()->GameGroup(), m_pClient->m_Camera.m_Zoom);
 
     // Begin rendering
     Graphics()->WrapClamp();

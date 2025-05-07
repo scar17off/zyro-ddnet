@@ -2343,14 +2343,16 @@ if(CLIENT)
     components/cheat/features/balancebot.h
     components/cheat/features/mapbot.cpp
     components/cheat/features/mapbot.h
+    components/cheat/gui.cpp
+    components/cheat/gui.h
     components/cheat/hitscan/hook_hitscan.cpp
     components/cheat/hitscan/hook_hitscan.h
+    components/cheat/prediction/grenade_prediction.cpp
+    components/cheat/prediction/grenade_prediction.h
     components/cheat/prediction/hook_prediction.cpp
     components/cheat/prediction/hook_prediction.h
     components/cheat/prediction/laser_prediction.cpp
     components/cheat/prediction/laser_prediction.h
-    components/cheat/prediction/grenade_prediction.cpp
-    components/cheat/prediction/grenade_prediction.h
     components/cheat/utils/ff_pathfinder.cpp
     components/cheat/utils/ff_pathfinder.h
     components/cheat/visuals.cpp
