@@ -325,24 +325,34 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	if(DoButton_CheckBox(&g_Config.m_ZrBalanceBotPrecise, Localize("precise"), g_Config.m_ZrBalanceBotPrecise, &Button))
 		g_Config.m_ZrBalanceBotPrecise ^= 1;
 
-	// Array list settings
+	// ArrayList settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
 	Row.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrArrayList, Localize("arraylist"), g_Config.m_ZrArrayList, &Button))
 		g_Config.m_ZrArrayList ^= 1;
 
-	// Array list gradient
+	// Border toggle
+	Right.VSplitLeft(5.0f, nullptr, &Right);
+	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrArrayListBorder, Localize("border"), g_Config.m_ZrArrayListBorder, &Button))
+		g_Config.m_ZrArrayListBorder ^= 1;
+
+	// Gradient toggle
 	Right.VSplitLeft(5.0f, nullptr, &Right);
 	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
 	if(DoButton_CheckBox(&g_Config.m_ZrArrayListGradient, Localize("gradient"), g_Config.m_ZrArrayListGradient, &Button))
 		g_Config.m_ZrArrayListGradient ^= 1;
 
-	// Array list line
-	Right.VSplitLeft(5.0f, nullptr, &Right);
-	Right.VSplitLeft(CheckboxWidth, &Button, &Right);
-	if(DoButton_CheckBox(&g_Config.m_ZrArrayListLine, Localize("line"), g_Config.m_ZrArrayListLine, &Button))
-		g_Config.m_ZrArrayListLine ^= 1;
+	// Gradient type dropdown
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(120.0f, &Button, &Right);
+
+	const char *apGradientTypes[] = {"Static", "Rainbow", "Pulse"};
+	static CUi::SDropDownState s_GradientTypeDropDownState;
+	static CScrollRegion s_GradientTypeDropDownScrollRegion;
+	s_GradientTypeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_GradientTypeDropDownScrollRegion;
+	g_Config.m_ZrArrayListGradientType = Ui()->DoDropDown(&Button, g_Config.m_ZrArrayListGradientType, apGradientTypes, std::size(apGradientTypes), s_GradientTypeDropDownState);
 
 	// Discord settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);

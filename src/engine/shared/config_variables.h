@@ -806,7 +806,9 @@ MACRO_CONFIG_INT(ZrBalanceBotPrecise, zr_balance_bot_precise, 0, 0, 1, CFGFLAG_S
 // Arraylist settings
 MACRO_CONFIG_INT(ZrArrayList, zr_arraylist, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show arraylist")
 MACRO_CONFIG_INT(ZrArrayListGradient, zr_arraylist_gradient, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show gradient")
-MACRO_CONFIG_INT(ZrArrayListLine, zr_arraylist_line, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show line")
+MACRO_CONFIG_INT(ZrArrayListBorder, zr_arraylist_border, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show colored border around items")
+MACRO_CONFIG_INT(ZrArrayListGradientType, zr_arraylist_gradient_type, 0, 0, 2, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Gradient type (0=static, 1=rainbow, 2=pulse)")
+MACRO_CONFIG_INT(ZrArrayListShadow, zr_arraylist_shadow, 0, 0, 1, CFGFLAG_SAVE | CFGFLAG_CLIENT, "Show shadow effect")
 
 // Mapbot settings
 MACRO_CONFIG_INT(ZrMapBot, zr_mapbot, 0, 0, 1, CFGFLAG_CLIENT, "Enable map bot")
