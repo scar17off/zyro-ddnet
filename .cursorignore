@@ -1,0 +1,27 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+*.txt
+*.supp
+.cargo/
+.vscode/
+build/
+cmake/
+data/
+datasrc/
+ddnet-libs/
+generated/
+man/
+other/
+scripts/
+src/android/
+src/antibot/
+src/macos/
+src/masterping/
+src/steam/
+src/test/
+src/tools/
+src/rust-bridge/
+src/mastersrv/
+src/engine/client/backend/
+src/engine/external/
+src/engine/gtx/
+src/engine/server/

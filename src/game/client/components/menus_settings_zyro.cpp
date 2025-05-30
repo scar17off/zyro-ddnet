@@ -391,6 +391,51 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 		m_pClient->m_MapBot.GeneratePath();
 	}
 
+	// MapBot toggle
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(60.0f, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrMapBot, Localize("mapbot"), g_Config.m_ZrMapBot, &Button))
+		g_Config.m_ZrMapBot ^= 1;
+	
+	// MapBot render toggle
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(60.0f, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrMapBotRender, Localize("render"), g_Config.m_ZrMapBotRender, &Button))
+		g_Config.m_ZrMapBotRender ^= 1;
+	
+	// MapBot movement options
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(50.0f, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrMapBotMove, Localize("move"), g_Config.m_ZrMapBotMove, &Button))
+		g_Config.m_ZrMapBotMove ^= 1;
+
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(50.0f, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrMapBotHook, Localize("hook"), g_Config.m_ZrMapBotHook, &Button))
+		g_Config.m_ZrMapBotHook ^= 1;
+
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(50.0f, &Button, &Right);
+	if(DoButton_CheckBox(&g_Config.m_ZrMapBotJump, Localize("jump"), g_Config.m_ZrMapBotJump, &Button))
+		g_Config.m_ZrMapBotJump ^= 1;
+	
+	// MapBot settings row
+	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
+	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	
+	// Accuracy slider
+	Row.VSplitLeft(SliderWidth, &Button, &Right);
+	Ui()->DoScrollbarOption(&g_Config.m_ZrMapBotAccuracy, &g_Config.m_ZrMapBotAccuracy, &Button,
+		Localize("accuracy"), 1, 200, &CUi::ms_LinearScrollbarScale,
+		CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+
+	// Ticks slider
+	Right.VSplitLeft(10.0f, nullptr, &Right);
+	Right.VSplitLeft(SliderWidth, &Button, &Right);
+	Ui()->DoScrollbarOption(&g_Config.m_ZrMapBotTicks, &g_Config.m_ZrMapBotTicks, &Button,
+		Localize("ticks"), 10, 200, &CUi::ms_LinearScrollbarScale,
+		CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+
 	// Unload settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);

@@ -813,6 +813,11 @@ MACRO_CONFIG_INT(ZrArrayListShadow, zr_arraylist_shadow, 0, 0, 1, CFGFLAG_SAVE |
 // Mapbot settings
 MACRO_CONFIG_INT(ZrMapBot, zr_mapbot, 0, 0, 1, CFGFLAG_CLIENT, "Enable map bot")
 MACRO_CONFIG_INT(ZrMapBotAccuracy, zr_mapbot_accuracy, 45, 1, 200, CFGFLAG_CLIENT, "Map bot angle step accuracy (1-200)")
+MACRO_CONFIG_INT(ZrMapBotMove, zr_mapbot_move, 1, 0, 1, CFGFLAG_CLIENT, "Enable movement prediction")
+MACRO_CONFIG_INT(ZrMapBotHook, zr_mapbot_hook, 1, 0, 1, CFGFLAG_CLIENT, "Enable hook prediction")
+MACRO_CONFIG_INT(ZrMapBotJump, zr_mapbot_jump, 1, 0, 1, CFGFLAG_CLIENT, "Enable jump prediction")
+MACRO_CONFIG_INT(ZrMapBotRender, zr_mapbot_render, 1, 0, 1, CFGFLAG_CLIENT, "Enable path rendering")
+MACRO_CONFIG_INT(ZrMapBotTicks, zr_mapbot_ticks, 60, 10, 200, CFGFLAG_CLIENT, "Number of ticks to predict (10-200)")
 
 // Animation settings
 MACRO_CONFIG_INT(ZrAnim, zr_anim, 0, 0, 1, CFGFLAG_CLIENT, "Enable grenade animation")
