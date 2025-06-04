@@ -12,6 +12,9 @@
 #include <thread>
 #include <memory>
 
+// Bro something is wrong with the input scoring.
+// It seems to be too random and not really reliable.
+
 // Why?
 void CMapBot::OnInit()
 {
@@ -35,18 +38,18 @@ void CMapBot::OnMapLoad()
 
 void CMapBot::OnRender()
 {
-	if(!g_Config.m_ZrMapBot || !m_pClient->m_Cheat.m_Active)
-		return;
+    if(!g_Config.m_ZrMapBot || !m_pClient->m_Cheat.m_Active)
+        return;
 
-	// Get current player state
-	vec2 pos = m_pClient->m_PredictedChar.m_Pos;
-	vec2 vel = m_pClient->m_PredictedChar.m_Vel;
+    // Get current player state
+    vec2 pos = m_pClient->m_PredictedChar.m_Pos;
+    vec2 vel = m_pClient->m_PredictedChar.m_Vel;
 
-	// Generate possible movement paths
-	m_Paths = PredictMovement(pos, vel); // TODO: this should be done in OnTick
+    // Generate possible movement paths
+    m_Paths = PredictMovement(pos, vel); // TODO: this should be done in OnTick
 
-	// Render the paths
-	RenderPaths();
+    // Render the paths
+    RenderPaths();
 }
 
 void CMapBot::GeneratePath()
@@ -75,31 +78,80 @@ std::vector<CMapBot::MovementPath> CMapBot::PredictMovement(vec2 pos, vec2 vel)
     else
         angles = {0};
 
-    // Calculate total combinations
-    size_t totalComb = directions.size() * jumps.size() * hookStates.size() * angles.size();
-    const int NUM_THREADS = 4;
-    size_t combPerThread = (totalComb + NUM_THREADS - 1) / NUM_THREADS;
+    if(!m_pClient->m_FlowFieldPathfinder.HasPath())
+        return paths; // No path available
 
-    std::vector<std::shared_ptr<CScanJob>> jobs;
+    vec2 finishPos = m_pClient->m_FlowFieldPathfinder.GetFinishPos();
 
-    for(int t = 0; t < NUM_THREADS; ++t)
+    MovementPath bestPath;
+    float maxScore = -std::numeric_limits<float>::infinity();
+    size_t bestPathIndex = -1;
+
+    for(int dir : directions)
     {
-        size_t startIdx = t * combPerThread;
-        size_t endIdx = std::min(startIdx + combPerThread, totalComb);
+        for(int jump : jumps)
+        {
+            for(int hook : hookStates)
+            {
+                for(float angle : angles)
+                {
+                    std::vector<PredictionPoint> points;
+                    PredictCharacterMovement(pos, vel, dir, jump, hook, angle, PredictionSteps, points);
 
-        auto job = std::make_shared<CScanJob>(
-            pos, vel, directions, jumps, hookStates, angles,
-            PredictionSteps, startIdx, endIdx, &paths, this
-        );
-        jobs.push_back(job);
-        Kernel()->RequestInterface<IEngine>()->AddJob(std::static_pointer_cast<IJob>(job));
+                    // Calculate score for the path
+                    float score = 0.0f;
+                    bool isFrozen = false;
+
+                    for(const auto &point : points)
+                    {
+                        if(point.m_IsFrozen)
+                        {
+                            isFrozen = true;
+                            break;
+                        }
+
+                        vec2 flowDir = m_pClient->m_FlowFieldPathfinder.GetFlowDirection((int)point.m_Pos.x, (int)point.m_Pos.y);
+
+                        // Proximity score
+                        float dist = length(point.m_Pos - pos);
+                        float distScore = 1.0f / (1.0f + dist / 32.0f);
+
+                        // Alignment score
+                        vec2 moveDir = normalize(vel);
+                        float alignScore = dot(moveDir, flowDir);
+
+                        // Combine scores
+                        score += distScore * 0.4f + alignScore * 0.6f;
+                    }
+
+                    // Skip paths that result in freezing
+                    if(isFrozen)
+                        continue;
+
+                    // Create a new path for this input combination
+                    MovementPath path(vel, hook, jump, dir);
+                    path.m_Positions.clear();
+                    for(const auto &point : points)
+                        path.m_Positions.push_back(point.m_Pos);
+
+                    paths.push_back(path);
+
+                    // Update the best path
+                    if(score > maxScore)
+                    {
+                        maxScore = score;
+                        bestPath = path;
+                        bestPathIndex = paths.size() - 1; // Store the index of the best path
+                    }
+                }
+            }
+        }
     }
 
-    // Wait for all jobs to finish
-    for(const auto& job : jobs)
+    // Mark the best path as selected
+    if(bestPathIndex != -1)
     {
-        while(!job->Done())
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        paths[bestPathIndex].m_IsSelected = true;
     }
 
     return paths;
@@ -107,44 +159,46 @@ std::vector<CMapBot::MovementPath> CMapBot::PredictMovement(vec2 pos, vec2 vel)
 
 void CMapBot::RenderPaths()
 {
-	if(!g_Config.m_ZrMapBotRender)
-		return;
+    if(!g_Config.m_ZrMapBotRender)
+        return;
 
-	for(const auto &path : m_Paths)
-	{
-		// Different colors for different types of movement
-		ColorRGBA color;
-		if(path.m_IsHook && path.m_IsJump)
-			color = ColorRGBA(1.0f, 0.0f, 1.0f, 0.3f); // Purple for hook+jump
-		else if(path.m_IsHook)
-			color = ColorRGBA(0.0f, 1.0f, 0.0f, 0.3f); // Green for hook
-		else if(path.m_IsJump)
-			color = ColorRGBA(0.0f, 0.0f, 1.0f, 0.3f); // Blue for jump
-		else
-			color = ColorRGBA(1.0f, 1.0f, 0.0f, 0.3f); // Yellow for normal movement
+    for(const auto &path : m_Paths)
+    {
+        // Different colors for different types of movement
+        ColorRGBA color;
+        if(path.m_IsSelected)
+            color = ColorRGBA(0.0f, 1.0f, 1.0f, 0.5f); // Cyan for the selected path
+        else if(path.m_IsHook && path.m_IsJump)
+            color = ColorRGBA(1.0f, 0.0f, 1.0f, 0.3f); // Purple for hook+jump
+        else if(path.m_IsHook)
+            color = ColorRGBA(0.0f, 1.0f, 0.0f, 0.3f); // Green for hook
+        else if(path.m_IsJump)
+            color = ColorRGBA(0.0f, 0.0f, 1.0f, 0.3f); // Blue for jump
+        else
+            color = ColorRGBA(1.0f, 1.0f, 0.0f, 0.3f); // Yellow for normal movement
 
-		// Draw smooth line through all positions
-		for(size_t i = 0; i < path.m_Positions.size() - 1; i++)
-		{
-			m_pClient->m_Visuals.DrawLine(
-				path.m_Positions[i].x, path.m_Positions[i].y,
-				path.m_Positions[i + 1].x, path.m_Positions[i + 1].y,
-				1.0f, color);
-		}
+        // Draw smooth line through all positions
+        for(size_t i = 0; i < path.m_Positions.size() - 1; i++)
+        {
+            m_pClient->m_Visuals.DrawLine(
+                path.m_Positions[i].x, path.m_Positions[i].y,
+                path.m_Positions[i + 1].x, path.m_Positions[i + 1].y,
+                1.0f, color);
+        }
 
-		// Draw end point
-		if(!path.m_Positions.empty())
-		{
-			float BoxSize = 4.0f;
-			Graphics()->TextureClear();
-			Graphics()->QuadsBegin();
-			Graphics()->SetColor(color.r, color.g, color.b, 0.8f);
-			vec2 endPos = path.m_Positions.back();
-			IGraphics::CQuadItem QuadItem(endPos.x - BoxSize / 2, endPos.y - BoxSize / 2, BoxSize, BoxSize);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
-			Graphics()->QuadsEnd();
-		}
-	}
+        // Draw end point
+        if(!path.m_Positions.empty())
+        {
+            float BoxSize = 4.0f;
+            Graphics()->TextureClear();
+            Graphics()->QuadsBegin();
+            Graphics()->SetColor(color.r, color.g, color.b, 0.8f);
+            vec2 endPos = path.m_Positions.back();
+            IGraphics::CQuadItem QuadItem(endPos.x - BoxSize / 2, endPos.y - BoxSize / 2, BoxSize, BoxSize);
+            Graphics()->QuadsDrawTL(&QuadItem, 1);
+            Graphics()->QuadsEnd();
+        }
+    }
 }
 
 bool CMapBot::IsValidPosition(vec2 pos) const

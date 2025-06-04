@@ -246,13 +246,13 @@ void CFlowFieldPathfinder::GenerateFlowField()
     // Start from all finish tiles
     for(const auto& finish : m_FinishTiles)
     {
-        int fx = static_cast<int>(finish.x/32.0f);
-        int fy = static_cast<int>(finish.y/32.0f);
+        int fx = static_cast<int>(finish.x / 32.0f);
+        int fy = static_cast<int>(finish.y / 32.0f);
         m_FlowField[fy][fx].distance = 0;
         queue.push({0, finish});
     }
 
-    // Dijkstra's algorithm (this is the only algorithm i know)
+    // Dijkstra's algorithm (reverse flow field)
     while(!queue.empty())
     {
         auto current = queue.top();
@@ -261,8 +261,8 @@ void CFlowFieldPathfinder::GenerateFlowField()
         vec2 pos = current.second;
         float dist = current.first;
         
-        int x = static_cast<int>(pos.x/32.0f);
-        int y = static_cast<int>(pos.y/32.0f);
+        int x = static_cast<int>(pos.x / 32.0f);
+        int y = static_cast<int>(pos.y / 32.0f);
         
         // Skip if we found a better path already
         if(dist > m_FlowField[y][x].distance)
@@ -271,15 +271,15 @@ void CFlowFieldPathfinder::GenerateFlowField()
         // Process neighbors
         for(const auto& neighbor : GetValidNeighbors(pos))
         {
-            int nx = static_cast<int>(neighbor.x/32.0f);
-            int ny = static_cast<int>(neighbor.y/32.0f);
+            int nx = static_cast<int>(neighbor.x / 32.0f);
+            int ny = static_cast<int>(neighbor.y / 32.0f);
             
             float newDist = dist + GetHeuristic(pos, neighbor);
             
             if(newDist < m_FlowField[ny][nx].distance && m_ReachableArea[ny][nx])
             {
                 m_FlowField[ny][nx].distance = newDist;
-                m_FlowField[ny][nx].direction = normalize(pos - neighbor);
+                m_FlowField[ny][nx].direction = normalize(pos - neighbor); // Reverse direction
                 queue.push({newDist, neighbor});
             }
         }

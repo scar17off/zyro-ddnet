@@ -35,8 +35,7 @@ public:
         vec2 pos, vec2 vel,
         int dir, int jump, int hook, float angle,
         int PredictionSteps,
-        std::vector<PredictionPoint>& points
-    );
+        std::vector<PredictionPoint>& points);
     bool IsGenerating() const { return m_IsGenerating; }
     bool HasPath() const { return m_PathFound; }
 
@@ -47,7 +46,13 @@ private:
         bool m_IsHook;
         bool m_IsJump;
         int m_Direction;
+        bool m_IsSelected;
+
+        // Constructor
+        MovementPath(vec2 velocity = vec2(0, 0), bool isHook = false, bool isJump = false, int direction = 0)
+            : m_Velocity(velocity), m_IsHook(isHook), m_IsJump(isJump), m_Direction(direction), m_IsSelected(false) {}
     };
+    const CMapBot::MovementPath &GetSelectedPath() const;
 
     class CScanJob : public IJob
     {

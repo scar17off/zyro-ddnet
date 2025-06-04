@@ -47,7 +47,7 @@ public:
     vec2 GetFinishPos() const { return !m_FinishTiles.empty() ? m_FinishTiles[0] : vec2(0,0); }
     vec2 GetFlowDirection(int x, int y) const { 
         if(IsValidTile(x, y))
-            return m_FlowField[y][x].direction;
+            return -m_FlowField[y][x].direction;
         return vec2(0,0);
     }
 

@@ -818,6 +818,7 @@ MACRO_CONFIG_INT(ZrMapBotHook, zr_mapbot_hook, 1, 0, 1, CFGFLAG_CLIENT, "Enable 
 MACRO_CONFIG_INT(ZrMapBotJump, zr_mapbot_jump, 1, 0, 1, CFGFLAG_CLIENT, "Enable jump prediction")
 MACRO_CONFIG_INT(ZrMapBotRender, zr_mapbot_render, 1, 0, 1, CFGFLAG_CLIENT, "Enable path rendering")
 MACRO_CONFIG_INT(ZrMapBotTicks, zr_mapbot_ticks, 60, 10, 200, CFGFLAG_CLIENT, "Number of ticks to predict (10-200)")
+MACRO_CONFIG_INT(ZrMapBotUseSelectedInput, zr_mapbot_use_selected_input, 0, 0, 1, CFGFLAG_CLIENT, "Use selected input from mapbot on real character")
 
 // Animation settings
 MACRO_CONFIG_INT(ZrAnim, zr_anim, 0, 0, 1, CFGFLAG_CLIENT, "Enable grenade animation")

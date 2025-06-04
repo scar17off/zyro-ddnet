@@ -374,6 +374,7 @@ void CMenus::RenderTabPage1(CUIRect MainView)
 	// Mapbot settings
 	SettingsView.HSplitTop(Spacing, nullptr, &SettingsView);
 	SettingsView.HSplitTop(LineSize, &Row, &SettingsView);
+	
 	// Path
 	Row.VSplitLeft(30.0f, &Button, &Right);
 	static CButtonContainer s_PathButton;
